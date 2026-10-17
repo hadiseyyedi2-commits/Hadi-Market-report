@@ -1,0 +1,31 @@
+name: Hadi Market Report
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '30 5 * * *'
+
+jobs:
+  send-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Telegram test message
+        env:
+          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          if [ -z "$BOT_TOKEN" ] || [ -z "$CHAT_ID" ]; then
+            echo "Missing Telegram secrets"
+            exit 1
+          fi
+
+          RESPONSE=$(curl -sS -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${CHAT_ID}" \
+            --data-urlencode "text=Hadi Market Reports: اتصال آزمایشی GitHub به تلگرام موفق بود.")
+
+          echo "$RESPONSE" | grep -q '"ok":true' || {
+            echo "Telegram message failed"
+            exit 1
+          }
+
+          echo "Telegram test message sent successfully"
