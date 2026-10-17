@@ -1,576 +1,847 @@
 import os
+import json
 import time
+import base64
+import hashlib
 import requests
+import numpy as np
+import pandas as pd
+
 from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
 
-# =========================================================
-# Hadi Market Reports - Hidden Divergence Scanner
-# Timeframes: D1, H4, H1, M15
-# MACD: 12, 26, 9
-# =========================================================
 
-TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
-CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+# ============================================================
+# CONFIGURATION
+# ============================================================
 
-TEHRAN = ZoneInfo("Asia/Tehran")
+MACD_FAST = 12
+MACD_SLOW = 26
+MACD_SIGNAL = 9
 
-SYMBOLS = [
-    "EURUSD=X",
-    "GBPUSD=X",
-    "USDJPY=X",
-    "USDCHF=X",
-    "USDCAD=X",
-    "AUDUSD=X",
-    "NZDUSD=X",
-    "EURGBP=X",
-    "EURJPY=X",
-    "EURCHF=X",
-    "EURAUD=X",
-    "EURNZD=X",
-    "EURCAD=X",
-    "GBPJPY=X",
-    "GBPCHF=X",
-    "GBPAUD=X",
-    "GBPCAD=X",
-    "GBPNZD=X",
-    "AUDJPY=X",
-    "AUDNZD=X",
-    "AUDCAD=X",
-    "NZDJPY=X",
-    "XAUUSD=X",
-    "XAGUSD=X",
-]
+MAX_SIGNAL_AGE = 5
 
-# تایم‌فریم‌های مستقیم از Yahoo Finance
-TIMEFRAMES = [
-    ("D1", "1d", "1y"),
-    ("H1", "1h", "60d"),
-    ("M15", "15m", "60d"),
-]
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
 
-SESSION = requests.Session()
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY", "")
+GITHUB_BRANCH = os.getenv("GITHUB_REF_NAME", "main")
 
-SESSION.headers.update({
+STATE_PATH = "state/sent_signals.json"
+
+YAHOO_URL = "https://query1.finance.yahoo.com/v8/finance/chart/"
+
+HEADERS = {
     "User-Agent": "Mozilla/5.0"
-})
+}
+
+SYMBOLS = {
+    "EURUSD": "EURUSD=X",
+    "GBPUSD": "GBPUSD=X",
+    "USDJPY": "JPY=X",
+    "USDCHF": "CHF=X",
+    "USDCAD": "CAD=X",
+    "AUDUSD": "AUDUSD=X",
+    "NZDUSD": "NZDUSD=X",
+    "EURGBP": "EURGBP=X",
+    "EURJPY": "EURJPY=X",
+    "EURCHF": "EURCHF=X",
+    "EURCAD": "EURCAD=X",
+    "EURAUD": "EURAUD=X",
+    "EURNZD": "EURNZD=X",
+    "GBPJPY": "GBPJPY=X",
+    "GBPCHF": "GBPCHF=X",
+    "GBPCAD": "GBPCAD=X",
+    "GBPAUD": "GBPAUD=X",
+    "GBPNZD": "GBPNZD=X",
+    "AUDJPY": "AUDJPY=X",
+    "AUDCAD": "AUDCAD=X",
+    "AUDNZD": "AUDNZD=X",
+    "NZDJPY": "NZDJPY=X",
+    "XAUUSD": "XAUUSD=X",
+    "XAGUSD": "XAGUSD=X",
+}
+
+TIMEFRAMES = {
+    "D1": ("1d", "2y"),
+    "H1": ("1h", "730d"),
+    "M15": ("15m", "60d"),
+}
 
 
-# =========================================================
+# ============================================================
 # TELEGRAM
-# =========================================================
+# ============================================================
 
 def send_telegram(message):
-    if not TOKEN or not CHAT_ID:
-        raise RuntimeError(
-            "TELEGRAM_BOT_TOKEN یا TELEGRAM_CHAT_ID تنظیم نشده است."
-        )
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        print("ERROR: Telegram credentials are missing.")
+        return False
 
-    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    url = (
+        "https://api.telegram.org/bot"
+        + TELEGRAM_BOT_TOKEN
+        + "/sendMessage"
+    )
 
     chunks = []
-    current = ""
 
-    for line in message.splitlines():
-        if len(current) + len(line) + 1 > 3900:
-            if current:
-                chunks.append(current)
-            current = line
-        else:
-            current += ("\n" if current else "") + line
+    while len(message) > 3900:
+        split_at = message.rfind("\n", 0, 3900)
 
-    if current:
-        chunks.append(current)
+        if split_at <= 0:
+            split_at = 3900
+
+        chunks.append(message[:split_at])
+        message = message[split_at:].lstrip()
+
+    if message:
+        chunks.append(message)
 
     for chunk in chunks:
-        response = SESSION.post(
+        try:
+            response = requests.post(
+                url,
+                json={
+                    "chat_id": TELEGRAM_CHAT_ID,
+                    "text": chunk
+                },
+                timeout=30
+            )
+
+            if response.status_code != 200:
+                print(
+                    "Telegram error:",
+                    response.status_code,
+                    response.text[:500]
+                )
+                return False
+
+            result = response.json()
+
+            if not result.get("ok", False):
+                print("Telegram rejected message:", result)
+                return False
+
+        except requests.RequestException as exc:
+            print("Telegram request failed:", exc)
+            return False
+
+    return True
+
+
+# ============================================================
+# GITHUB STATE STORAGE
+# ============================================================
+
+def github_url(path):
+    return (
+        "https://api.github.com/repos/"
+        + GITHUB_REPOSITORY
+        + "/"
+        + path.lstrip("/")
+    )
+
+
+def github_headers():
+    return {
+        "Authorization": "Bearer " + GITHUB_TOKEN,
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28"
+    }
+
+
+def load_state():
+    if GITHUB_TOKEN and GITHUB_REPOSITORY:
+        try:
+            response = requests.get(
+                github_url("contents/" + STATE_PATH),
+                headers=github_headers(),
+                params={"ref": GITHUB_BRANCH},
+                timeout=30
+            )
+
+            if response.status_code == 200:
+                payload = response.json()
+
+                content = base64.b64decode(
+                    payload["content"]
+                ).decode("utf-8")
+
+                state = json.loads(content)
+
+                if isinstance(state, dict):
+                    return state
+
+            elif response.status_code != 404:
+                print(
+                    "GitHub state read error:",
+                    response.status_code,
+                    response.text[:300]
+                )
+
+        except Exception as exc:
+            print("GitHub state read failed:", exc)
+
+    try:
+        if os.path.exists(STATE_PATH):
+            with open(
+                STATE_PATH,
+                "r",
+                encoding="utf-8"
+            ) as file:
+                state = json.load(file)
+
+                if isinstance(state, dict):
+                    return state
+
+    except Exception as exc:
+        print("Local state read failed:", exc)
+
+    return {}
+
+
+def save_state(state):
+    os.makedirs(
+        os.path.dirname(STATE_PATH),
+        exist_ok=True
+    )
+
+    with open(
+        STATE_PATH,
+        "w",
+        encoding="utf-8"
+    ) as file:
+        json.dump(
+            state,
+            file,
+            ensure_ascii=False,
+            indent=2
+        )
+
+    if not GITHUB_TOKEN or not GITHUB_REPOSITORY:
+        print(
+            "WARNING: GitHub persistence is unavailable."
+        )
+        return False
+
+    url = github_url("contents/" + STATE_PATH)
+
+    try:
+        existing = requests.get(
             url,
-            data={
-                "chat_id": CHAT_ID,
-                "text": chunk,
-            },
-            timeout=30,
+            headers=github_headers(),
+            params={"ref": GITHUB_BRANCH},
+            timeout=30
+        )
+
+        payload = {
+            "message": "Update Level Criterion signal history",
+            "content": base64.b64encode(
+                json.dumps(
+                    state,
+                    ensure_ascii=False,
+                    indent=2
+                ).encode("utf-8")
+            ).decode("utf-8"),
+            "branch": GITHUB_BRANCH
+        }
+
+        if existing.status_code == 200:
+            payload["sha"] = existing.json()["sha"]
+
+        elif existing.status_code != 404:
+            print(
+                "GitHub state check failed:",
+                existing.status_code,
+                existing.text[:300]
+            )
+            return False
+
+        response = requests.put(
+            url,
+            headers=github_headers(),
+            json=payload,
+            timeout=30
+        )
+
+        if response.status_code in (200, 201):
+            print("Signal history saved to GitHub.")
+            return True
+
+        print(
+            "GitHub state save failed:",
+            response.status_code,
+            response.text[:500]
+        )
+
+    except Exception as exc:
+        print("GitHub state save exception:", exc)
+
+    return False
+
+
+# ============================================================
+# MARKET DATA DOWNLOAD
+# ============================================================
+
+def download_data(symbol, interval, period):
+    url = YAHOO_URL + requests.utils.quote(
+        symbol,
+        safe=""
+    )
+
+    params = {
+        "range": period,
+        "interval": interval,
+        "events": "history"
+    }
+
+    try:
+        response = requests.get(
+            url,
+            params=params,
+            headers=HEADERS,
+            timeout=45
         )
 
         response.raise_for_status()
 
-        result = response.json()
+        payload = response.json()
+        chart = payload.get("chart", {})
 
-        if not result.get("ok"):
-            raise RuntimeError(
-                f"Telegram API error: {result}"
+        if chart.get("error"):
+            print(
+                "Yahoo error:",
+                symbol,
+                interval,
+                chart["error"]
+            )
+            return None
+
+        results = chart.get("result")
+
+        if not results:
+            return None
+
+        result = results[0]
+        timestamps = result.get("timestamp", [])
+
+        if not timestamps:
+            return None
+
+        indicators = result.get("indicators", {})
+        quote_list = indicators.get("quote", [])
+
+        if not quote_list:
+            return None
+
+        quotes = quote_list[0]
+
+        df = pd.DataFrame({
+            "Timestamp": pd.to_datetime(
+                timestamps,
+                unit="s",
+                utc=True
+            ),
+            "Open": quotes.get("open", []),
+            "High": quotes.get("high", []),
+            "Low": quotes.get("low", []),
+            "Close": quotes.get("close", [])
+        })
+
+        df = df.dropna(
+            subset=[
+                "Timestamp",
+                "Open",
+                "High",
+                "Low",
+                "Close"
+            ]
+        )
+
+        df = df.sort_values("Timestamp")
+        df = df.drop_duplicates(
+            subset=["Timestamp"],
+            keep="last"
+        )
+
+        df = df.reset_index(drop=True)
+
+        if df.empty:
+            return None
+
+        now = pd.Timestamp.now(tz="UTC")
+
+        minutes = {
+            "1d": 1440,
+            "1h": 60,
+            "15m": 15
+        }.get(interval)
+
+        if minutes:
+            candle_end = (
+                df["Timestamp"]
+                + pd.to_timedelta(minutes, unit="m")
             )
 
-        time.sleep(0.3)
+            df = df.loc[
+                candle_end <= now
+            ].copy()
 
+        df = df.reset_index(drop=True)
 
-# =========================================================
-# MARKET DATA
-# =========================================================
+        if len(df) < 50:
+            return None
 
-def fetch_data(symbol, interval, period):
-    url = (
-        "https://query1.finance.yahoo.com/v8/finance/chart/"
-        + symbol
-    )
+        return df
 
-    response = SESSION.get(
-        url,
-        params={
-            "interval": interval,
-            "range": period,
-        },
-        timeout=30,
-    )
-
-    response.raise_for_status()
-
-    payload = response.json()
-
-    result = (
-        payload.get("chart", {})
-        .get("result")
-    )
-
-    if not result:
-        error = (
-            payload.get("chart", {})
-            .get("error")
+    except Exception as exc:
+        print(
+            "Download failed:",
+            symbol,
+            interval,
+            str(exc)[:300]
         )
-        raise ValueError(
-            f"No market data: {error}"
-        )
-
-    item = result[0]
-
-    timestamps = item.get("timestamp") or []
-
-    quote = item["indicators"]["quote"][0]
-
-    rows = []
-
-    for i, timestamp in enumerate(timestamps):
-        try:
-            o = quote["open"][i]
-            h = quote["high"][i]
-            l = quote["low"][i]
-            c = quote["close"][i]
-
-            if None in (o, h, l, c):
-                continue
-
-            rows.append({
-                "time": int(timestamp),
-                "open": float(o),
-                "high": float(h),
-                "low": float(l),
-                "close": float(c),
-            })
-
-        except (IndexError, TypeError, ValueError):
-            continue
-
-    rows.sort(key=lambda row: row["time"])
-
-    return rows
+        return None
 
 
-# =========================================================
+# ============================================================
 # BUILD H4 FROM H1
-# =========================================================
+# ============================================================
 
-def build_h4(hourly_rows):
-    """
-    ساخت کندل‌های چهار‌ساعته از داده‌های H1.
-    فقط بلوک‌هایی نگه داشته می‌شوند که حداقل چهار ساعت
-    داده را پوشش دهند.
-    """
+def build_h4_from_h1(h1):
+    if h1 is None or h1.empty:
+        return None
 
-    buckets = {}
+    data = h1.copy()
+    data = data.set_index("Timestamp")
 
-    for row in hourly_rows:
-        bucket_time = (
-            row["time"] // 14400
-        ) * 14400
+    grouped = data.resample(
+        "4h",
+        origin="epoch",
+        label="left",
+        closed="left"
+    )
 
-        if bucket_time not in buckets:
-            buckets[bucket_time] = {
-                "time": bucket_time,
-                "open": row["open"],
-                "high": row["high"],
-                "low": row["low"],
-                "close": row["close"],
-                "_first": row["time"],
-                "_last": row["time"],
-                "_count": 1,
-            }
+    h4 = grouped.agg({
+        "Open": "first",
+        "High": "max",
+        "Low": "min",
+        "Close": "last"
+    })
 
-        else:
-            candle = buckets[bucket_time]
+    counts = grouped["Close"].count()
+    h4["Count"] = counts
 
-            candle["high"] = max(
-                candle["high"],
-                row["high"],
-            )
+    h4 = h4.loc[
+        h4["Count"] == 4
+    ].copy()
 
-            candle["low"] = min(
-                candle["low"],
-                row["low"],
-            )
+    h4 = h4.dropna(
+        subset=["Open", "High", "Low", "Close"]
+    )
 
-            if row["time"] < candle["_first"]:
-                candle["open"] = row["open"]
-                candle["_first"] = row["time"]
+    h4 = h4.drop(columns=["Count"])
+    h4 = h4.reset_index()
 
-            if row["time"] > candle["_last"]:
-                candle["close"] = row["close"]
-                candle["_last"] = row["time"]
+    now = pd.Timestamp.now(tz="UTC")
 
-            candle["_count"] += 1
+    h4 = h4.loc[
+        h4["Timestamp"] + pd.Timedelta(hours=4)
+        <= now
+    ].copy()
 
-    result = []
+    h4 = h4.reset_index(drop=True)
 
-    for candle in sorted(
-        buckets.values(),
-        key=lambda x: x["time"],
-    ):
-        if (
-            candle["_count"] >= 4
-            and candle["_last"] - candle["time"] >= 3 * 3600
-        ):
-            result.append({
-                "time": candle["time"],
-                "open": candle["open"],
-                "high": candle["high"],
-                "low": candle["low"],
-                "close": candle["close"],
-            })
+    if len(h4) < 50:
+        return None
 
-    return result
+    return h4
 
 
-# =========================================================
-# REMOVE CURRENT INCOMPLETE CANDLE
-# =========================================================
+# ============================================================
+# MACD 12,26,9
+# ============================================================
 
-def remove_incomplete_candle(rows, timeframe):
-    """
-    از استفاده از آخرین کندل ناقص جلوگیری می‌کند.
-    زمان‌بندی Yahoo ممکن است با زمان‌بندی بروکر متفاوت باشد.
-    """
+def calculate_macd(df):
+    result = df.copy()
 
-    if not rows:
-        return rows
+    ema_fast = result["Close"].ewm(
+        span=MACD_FAST,
+        adjust=False
+    ).mean()
 
-    now = int(datetime.now(timezone.utc).timestamp())
+    ema_slow = result["Close"].ewm(
+        span=MACD_SLOW,
+        adjust=False
+    ).mean()
 
-    seconds = {
-        "M15": 15 * 60,
-        "H1": 60 * 60,
-        "H4": 4 * 60 * 60,
-        "D1": 24 * 60 * 60,
-    }[timeframe]
+    result["MACD"] = ema_fast - ema_slow
 
-    # کندل فقط پس از پایان بازه زمانی آن قابل استفاده است.
-    return [
-        row for row in rows
-        if row["time"] + seconds <= now
-    ]
+    result["MACD_Signal"] = result["MACD"].ewm(
+        span=MACD_SIGNAL,
+        adjust=False
+    ).mean()
 
-
-# =========================================================
-# EMA AND MACD 12, 26, 9
-# =========================================================
-
-def ema(values, period):
-    result = [None] * len(values)
-
-    alpha = 2.0 / (period + 1.0)
-
-    state = None
-
-    for i, value in enumerate(values):
-        if value is None:
-            continue
-
-        if state is None:
-            state = value
-        else:
-            state = (
-                alpha * value
-                + (1.0 - alpha) * state
-            )
-
-        result[i] = state
+    result["MACD_Hist"] = (
+        result["MACD"] - result["MACD_Signal"]
+    )
 
     return result
 
 
-def calculate_macd(closes):
-    fast = ema(closes, 12)
-    slow = ema(closes, 26)
+# ============================================================
+# MACD ZERO-LINE PHASES
+# ============================================================
 
-    main = []
+def get_macd_phases(df):
+    values = df["MACD"].to_numpy(dtype=float)
 
-    for i in range(len(closes)):
-        if fast[i] is None or slow[i] is None:
-            main.append(None)
-        else:
-            main.append(
-                fast[i] - slow[i]
-            )
+    signs = np.sign(values).astype(float)
+    signs[signs == 0] = np.nan
 
-    signal = ema(main, 9)
+    sign_series = pd.Series(signs)
+    sign_series = sign_series.ffill().bfill()
 
-    histogram = []
-
-    for i in range(len(main)):
-        if main[i] is None or signal[i] is None:
-            histogram.append(None)
-        else:
-            histogram.append(
-                main[i] - signal[i]
-            )
-
-    return main, signal, histogram
-
-
-# =========================================================
-# FOUR MACD ZERO-LINE PHASES
-# =========================================================
-
-def get_macd_phases(macd):
-    """
-    هر فاز با تغییر علامت خط اصلی MACD تعریف می‌شود.
-    مقدار مثبت = بالای صفر
-    مقدار منفی = پایین صفر
-    """
-
-    valid = [
-        (i, value)
-        for i, value in enumerate(macd)
-        if value is not None
-    ]
-
-    if not valid:
+    if sign_series.isna().all():
         return []
+
+    signs = sign_series.to_numpy(dtype=float)
 
     phases = []
 
-    first_i, first_value = valid[0]
+    start = 0
+    current_sign = int(signs[0])
 
-    sign = 1 if first_value >= 0 else -1
+    for i in range(1, len(signs)):
+        sign_now = int(signs[i])
 
-    points = [
-        (first_i, first_value)
-    ]
-
-    for i, value in valid[1:]:
-        new_sign = 1 if value >= 0 else -1
-
-        if new_sign != sign:
+        if sign_now != current_sign:
             phases.append({
-                "sign": sign,
-                "points": points,
+                "sign": current_sign,
+                "start": start,
+                "end": i - 1
             })
 
-            sign = new_sign
-
-            points = [
-                (i, value)
-            ]
-
-        else:
-            points.append(
-                (i, value)
-            )
+            start = i
+            current_sign = sign_now
 
     phases.append({
-        "sign": sign,
-        "points": points,
+        "sign": current_sign,
+        "start": start,
+        "end": len(signs) - 1
     })
 
     return phases
 
 
-# =========================================================
-# HIDDEN DIVERGENCE DETECTION
-# =========================================================
+# ============================================================
+# FIND PRICE EXTREMES IN EACH PHASE
+# ============================================================
 
-def detect_hidden_divergence(rows):
+def get_extreme(df, start, end, kind):
+    section = df.iloc[start:end + 1]
+
+    if section.empty:
+        return None
+
+    if kind == "LOW":
+        idx = section["Low"].idxmin()
+        price = float(df.loc[idx, "Low"])
+    else:
+        idx = section["High"].idxmax()
+        price = float(df.loc[idx, "High"])
+
+    row = df.loc[idx]
+
+    return {
+        "index": int(idx),
+        "time": row["Timestamp"],
+        "price": price,
+        "macd": float(row["MACD"]),
+        "kind": kind
+    }
+
+
+# ============================================================
+# SIGNAL IDENTIFIER
+# ============================================================
+
+def make_signal_id(symbol, timeframe, direction, points):
+    parts = [
+        symbol,
+        timeframe,
+        direction
+    ]
+
+    for name, point in points:
+        parts.append(name)
+        parts.append(str(point["time"]))
+
+    raw = "|".join(parts)
+
+    return hashlib.sha256(
+        raw.encode("utf-8")
+    ).hexdigest()
+
+
+# ============================================================
+# LEVEL CRITERION DETECTION
+# ============================================================
+
+def detect_level_criterion(df, symbol, timeframe):
     """
-    BUY:
-        P1 -> N1 -> P2 -> N2
-
-        Price Low(N2) > Price Low(N1)
-        MACD Low(N2) < MACD Low(N1)
-
     SELL:
         N1 -> P1 -> N2 -> P2
 
-        Price High(P2) < Price High(P1)
-        MACD High(P2) > MACD High(P1)
+        Low(N2) < Low(N1)
+        MACD(N2) > MACD(N1)
+        High(P2) < High(P1)
+
+    BUY:
+        P1 -> N1 -> P2 -> N2
+
+        High(P2) > High(P1)
+        MACD(P2) < MACD(P1)
+        Low(N2) > Low(N1)
+
+    Four consecutive alternating MACD-main zero-line phases.
+    The final price-extreme point must be at most five closed
+    candles old.
     """
 
-    if len(rows) < 60:
+    if df is None or len(df) < 50:
         return []
 
-    closes = [
-        row["close"]
-        for row in rows
-    ]
+    data = calculate_macd(df)
 
-    macd, signal, histogram = calculate_macd(
-        closes
+    data = data.replace(
+        [np.inf, -np.inf],
+        np.nan
     )
 
-    phases = get_macd_phases(macd)
+    data = data.dropna(
+        subset=[
+            "MACD",
+            "Open",
+            "High",
+            "Low",
+            "Close"
+        ]
+    ).reset_index(drop=True)
+
+    if len(data) < 50:
+        return []
+
+    phases = get_macd_phases(data)
 
     if len(phases) < 4:
         return []
 
-    signals = []
+    last_closed_index = len(data) - 1
+    found = []
 
-    # بررسی توالی‌های چهارفازی در تاریخچه
-    for j in range(3, len(phases)):
-        phase1, phase2, phase3, phase4 = (
-            phases[j - 3:j + 1]
-        )
+    for i in range(len(phases) - 3):
+        phase1 = phases[i]
+        phase2 = phases[i + 1]
+        phase3 = phases[i + 2]
+        phase4 = phases[i + 3]
 
-        signs = (
+        signs = [
             phase1["sign"],
             phase2["sign"],
             phase3["sign"],
-            phase4["sign"],
+            phase4["sign"]
+        ]
+
+        # ----------------------------------------------------
+        # SELL: N1 -> P1 -> N2 -> P2
+        # ----------------------------------------------------
+
+        if signs == [-1, 1, -1, 1]:
+            direction = "SELL"
+
+            N1 = get_extreme(
+                data,
+                phase1["start"],
+                phase1["end"],
+                "LOW"
+            )
+
+            P1 = get_extreme(
+                data,
+                phase2["start"],
+                phase2["end"],
+                "HIGH"
+            )
+
+            N2 = get_extreme(
+                data,
+                phase3["start"],
+                phase3["end"],
+                "LOW"
+            )
+
+            P2 = get_extreme(
+                data,
+                phase4["start"],
+                phase4["end"],
+                "HIGH"
+            )
+
+            if any(
+                p is None
+                for p in [N1, P1, N2, P2]
+            ):
+                continue
+
+            valid = (
+                N2["price"] < N1["price"]
+                and N2["macd"] > N1["macd"]
+                and P2["price"] < P1["price"]
+            )
+
+            if not valid:
+                continue
+
+            points = [
+                ("N1", N1),
+                ("P1", P1),
+                ("N2", N2),
+                ("P2", P2)
+            ]
+
+            final_point = P2
+
+        # ----------------------------------------------------
+        # BUY: P1 -> N1 -> P2 -> N2
+        # ----------------------------------------------------
+
+        elif signs == [1, -1, 1, -1]:
+            direction = "BUY"
+
+            P1 = get_extreme(
+                data,
+                phase1["start"],
+                phase1["end"],
+                "HIGH"
+            )
+
+            N1 = get_extreme(
+                data,
+                phase2["start"],
+                phase2["end"],
+                "LOW"
+            )
+
+            P2 = get_extreme(
+                data,
+                phase3["start"],
+                phase3["end"],
+                "HIGH"
+            )
+
+            N2 = get_extreme(
+                data,
+                phase4["start"],
+                phase4["end"],
+                "LOW"
+            )
+
+            if any(
+                p is None
+                for p in [P1, N1, P2, N2]
+            ):
+                continue
+
+            valid = (
+                P2["price"] > P1["price"]
+                and P2["macd"] < P1["macd"]
+                and N2["price"] > N1["price"]
+            )
+
+            if not valid:
+                continue
+
+            points = [
+                ("P1", P1),
+                ("N1", N1),
+                ("P2", P2),
+                ("N2", N2)
+            ]
+
+            final_point = N2
+
+        else:
+            continue
+
+        # Only signals whose final point is no more than
+        # five closed candles old are accepted.
+        age = (
+            last_closed_index
+            - final_point["index"]
         )
 
-        # ---------------------------------------------
-        # BULLISH HIDDEN DIVERGENCE
-        # ---------------------------------------------
+        if age < 0 or age > MAX_SIGNAL_AGE:
+            continue
 
-        if signs == (1, -1, 1, -1):
+        signal_id = make_signal_id(
+            symbol,
+            timeframe,
+            direction,
+            points
+        )
 
-            # N1: پایین‌ترین کف قیمت در فاز منفی اول
-            n1 = min(
-                phase2["points"],
-                key=lambda p: rows[p[0]]["low"],
-            )
+        found.append({
+            "id": signal_id,
+            "symbol": symbol,
+            "timeframe": timeframe,
+            "direction": direction,
+            "age": age,
+            "points": points,
+            "final_time": final_point["time"]
+        })
 
-            # N2: پایین‌ترین کف قیمت در فاز منفی دوم
-            n2 = min(
-                phase4["points"],
-                key=lambda p: rows[p[0]]["low"],
-            )
-
-            i1, macd1 = n1
-            i2, macd2 = n2
-
-            price1 = rows[i1]["low"]
-            price2 = rows[i2]["low"]
-
-            if (
-                price2 > price1
-                and macd2 < macd1
-            ):
-                signals.append({
-                    "direction": "BUY",
-                    "type": "Hidden Bullish Divergence",
-                    "point1": {
-                        "label": "N1",
-                        "index": i1,
-                        "time": rows[i1]["time"],
-                        "price": price1,
-                        "macd": macd1,
-                    },
-                    "point2": {
-                        "label": "N2",
-                        "index": i2,
-                        "time": rows[i2]["time"],
-                        "price": price2,
-                        "macd": macd2,
-                    },
-                    "pattern_end": i2,
-                })
-
-        # ---------------------------------------------
-        # BEARISH HIDDEN DIVERGENCE
-        # ---------------------------------------------
-
-        elif signs == (-1, 1, -1, 1):
-
-            # P1: بالاترین سقف قیمت در فاز مثبت اول
-            p1 = max(
-                phase2["points"],
-                key=lambda p: rows[p[0]]["high"],
-            )
-
-            # P2: بالاترین سقف قیمت در فاز مثبت دوم
-            p2 = max(
-                phase4["points"],
-                key=lambda p: rows[p[0]]["high"],
-            )
-
-            i1, macd1 = p1
-            i2, macd2 = p2
-
-            price1 = rows[i1]["high"]
-            price2 = rows[i2]["high"]
-
-            if (
-                price2 < price1
-                and macd2 > macd1
-            ):
-                signals.append({
-                    "direction": "SELL",
-                    "type": "Hidden Bearish Divergence",
-                    "point1": {
-                        "label": "P1",
-                        "index": i1,
-                        "time": rows[i1]["time"],
-                        "price": price1,
-                        "macd": macd1,
-                    },
-                    "point2": {
-                        "label": "P2",
-                        "index": i2,
-                        "time": rows[i2]["time"],
-                        "price": price2,
-                        "macd": macd2,
-                    },
-                    "pattern_end": i2,
-                })
-
-    # جدیدترین الگو در اولویت است.
-    signals.sort(
-        key=lambda item: item["pattern_end"],
-        reverse=True,
+    # Keep the newest signal per direction in each scan.
+    found.sort(
+        key=lambda item: item["final_time"],
+        reverse=True
     )
 
-    # فقط جدیدترین سیگنال را برای هر جهت در این تایم‌فریم نگه می‌داریم.
-    latest_by_direction = {}
+    unique = []
+    seen_directions = set()
 
-    for signal_item in signals:
-        direction = signal_item["direction"]
+    for signal in found:
+        direction = signal["direction"]
 
-        if direction not in latest_by_direction:
-            latest_by_direction[direction] = signal_item
+        if direction in seen_directions:
+            continue
 
-    return list(
-        latest_by_direction.values()
-    )
+        seen_directions.add(direction)
+        unique.append(signal)
+
+    return unique
 
 
-# =========================================================
-# FORMATTING
-# =========================================================
+# ============================================================
+# REPORT FORMAT
+# ============================================================
 
-def display_symbol(symbol):
-    return symbol.replace("=X", "")
+def format_timestamp(value):
+    timestamp = pd.Timestamp(value)
+
+    if timestamp.tzinfo is None:
+        timestamp = timestamp.tz_localize("UTC")
+    else:
+        timestamp = timestamp.tz_convert("UTC")
+
+    return timestamp.strftime("%Y-%m-%d %H:%M UTC")
 
 
 def format_price(value):
-    if abs(value) >= 1000:
-        return f"{value:.3f}"
+    if value == 0:
+        return "0"
 
     if abs(value) >= 100:
         return f"{value:.3f}"
@@ -581,183 +852,201 @@ def format_price(value):
     return f"{value:.6f}"
 
 
-def format_time(timestamp):
-    return datetime.fromtimestamp(
-        timestamp,
-        timezone.utc,
-    ).astimezone(TEHRAN).strftime(
-        "%Y-%m-%d %H:%M"
-    )
-
-
-def format_signal(symbol, timeframe, signal):
-    p1 = signal["point1"]
-    p2 = signal["point2"]
-
-    icon = (
+def format_signal(signal):
+    marker = (
         "🟢 BUY"
         if signal["direction"] == "BUY"
         else "🔻 SELL"
     )
 
-    return "\n".join([
-        "★★ HIDDEN DIVERGENCE ★★",
-        f"نماد: {display_symbol(symbol)}",
-        f"تایم‌فریم: {timeframe}",
-        f"جهت: {icon}",
-        f"نوع الگو: {signal['type']}",
+    lines = [
+        "★★ LEVEL CRITERION ★★",
         "",
-        f"نقطه اول ({p1['label']}):",
-        f"زمان کندل: {format_time(p1['time'])} تهران",
-        f"قیمت نقطه: {format_price(p1['price'])}",
-        f"MACD Main: {p1['macd']:.8f}",
+        f"{marker} | {signal['symbol']}",
+        f"Timeframe: {signal['timeframe']}",
+        f"Final point age: {signal['age']} candle(s)",
+        ""
+    ]
+
+    for name, point in signal["points"]:
+        lines.append(
+            f"{name}: "
+            f"Price={format_price(point['price'])} | "
+            f"MACD={point['macd']:.8f} | "
+            f"Time={format_timestamp(point['time'])}"
+        )
+
+    lines.extend([
         "",
-        f"نقطه دوم ({p2['label']}):",
-        f"زمان کندل: {format_time(p2['time'])} تهران",
-        f"قیمت نقطه: {format_price(p2['price'])}",
-        f"MACD Main: {p2['macd']:.8f}",
-        "",
-        "روش بررسی: چهار فاز متوالی MACD",
-        "MACD: 12, 26, 9",
+        f"MACD: {MACD_FAST},{MACD_SLOW},{MACD_SIGNAL}"
     ])
 
+    return "\n".join(lines)
 
-# =========================================================
+
+# ============================================================
 # MAIN SCANNER
-# =========================================================
+# ============================================================
 
 def main():
-    now = datetime.now(TEHRAN)
-
+    print("=" * 60)
+    print("HADI MARKET REPORT")
+    print("LEVEL CRITERION / TLM-04")
     print(
-        f"Starting Hidden Divergence scan: {now:%Y-%m-%d %H:%M}"
+        f"MACD: {MACD_FAST},{MACD_SLOW},{MACD_SIGNAL}"
     )
+    print(
+        f"Maximum final-point age: {MAX_SIGNAL_AGE} candles"
+    )
+    print("=" * 60)
 
-    cache = {}
-    found_signals = []
-    errors = []
+    sent_state = load_state()
+    discovered = []
 
-    for symbol in SYMBOLS:
-        print(f"Scanning {symbol}")
+    for symbol_name, yahoo_symbol in SYMBOLS.items():
+        print("\nScanning:", symbol_name)
 
-        for timeframe, interval, period in TIMEFRAMES:
-            try:
-                key = (symbol, interval)
+        data_by_timeframe = {}
 
-                if key not in cache:
-                    cache[key] = fetch_data(
-                        symbol,
-                        interval,
-                        period,
-                    )
+        # ----------------------------------------------------
+        # D1
+        # ----------------------------------------------------
 
-                rows = cache[key]
+        d1 = download_data(
+            yahoo_symbol,
+            "1d",
+            "2y"
+        )
 
-                rows = remove_incomplete_candle(
-                    rows,
-                    timeframe,
+        if d1 is not None:
+            data_by_timeframe["D1"] = d1
+
+        time.sleep(0.2)
+
+        # ----------------------------------------------------
+        # H1 and H4
+        # ----------------------------------------------------
+
+        h1 = download_data(
+            yahoo_symbol,
+            "1h",
+            "730d"
+        )
+
+        if h1 is not None:
+            data_by_timeframe["H1"] = h1
+
+            h4 = build_h4_from_h1(h1)
+
+            if h4 is not None:
+                data_by_timeframe["H4"] = h4
+
+        time.sleep(0.2)
+
+        # ----------------------------------------------------
+        # M15
+        # ----------------------------------------------------
+
+        m15 = download_data(
+            yahoo_symbol,
+            "15m",
+            "60d"
+        )
+
+        if m15 is not None:
+            data_by_timeframe["M15"] = m15
+
+        time.sleep(0.2)
+
+        # ----------------------------------------------------
+        # SCAN ALL REQUESTED TIMEFRAMES
+        # ----------------------------------------------------
+
+        for timeframe in ["D1", "H4", "H1", "M15"]:
+            df = data_by_timeframe.get(timeframe)
+
+            if df is None:
+                print(
+                    "No data:",
+                    symbol_name,
+                    timeframe
                 )
+                continue
 
-                if len(rows) < 60:
+            signals = detect_level_criterion(
+                df,
+                symbol_name,
+                timeframe
+            )
+
+            for signal in signals:
+                if signal["id"] in sent_state:
                     continue
 
-                signals = detect_hidden_divergence(
-                    rows
+                discovered.append(signal)
+
+                print(
+                    "NEW:",
+                    signal["direction"],
+                    symbol_name,
+                    timeframe,
+                    "age:",
+                    signal["age"]
                 )
 
-                for signal in signals:
-                    found_signals.append(
-                        format_signal(
-                            symbol,
-                            timeframe,
-                            signal,
-                        )
-                    )
+    if not discovered:
+        print("\nNo new Level Criterion signals found.")
+        return
 
-            except Exception as exc:
-                error_text = (
-                    f"{display_symbol(symbol)} "
-                    f"{timeframe}: {str(exc)[:120]}"
-                )
+    discovered.sort(
+        key=lambda item: item["final_time"],
+        reverse=True
+    )
 
-                errors.append(error_text)
+    messages = [
+        format_signal(signal)
+        for signal in discovered
+    ]
 
-                print(error_text)
+    report = "\n\n--------------------\n\n".join(
+        messages
+    )
 
-        # H4 از داده H1 ساخته می‌شود.
-        try:
-            hourly_key = (symbol, "1h")
+    print("\nReport:")
+    print(report)
 
-            if hourly_key not in cache:
-                cache[hourly_key] = fetch_data(
-                    symbol,
-                    "1h",
-                    "60d",
-                )
-
-            h4_rows = build_h4(
-                cache[hourly_key]
-            )
-
-            h4_rows = remove_incomplete_candle(
-                h4_rows,
-                "H4",
-            )
-
-            if len(h4_rows) >= 60:
-                signals = detect_hidden_divergence(
-                    h4_rows
-                )
-
-                for signal in signals:
-                    found_signals.append(
-                        format_signal(
-                            symbol,
-                            "H4",
-                            signal,
-                        )
-                    )
-
-        except Exception as exc:
-            error_text = (
-                f"{display_symbol(symbol)} "
-                f"H4: {str(exc)[:120]}"
-            )
-
-            errors.append(error_text)
-
-            print(error_text)
-
-    if found_signals:
-        header = [
-            "★★ HADI HIDDEN DIVERGENCE REPORT ★★",
-            f"زمان بررسی: {now:%Y-%m-%d %H:%M} تهران",
-            "تایم‌فریم‌ها: D1 | H4 | H1 | M15",
-            "MACD: 12,26,9",
-            f"تعداد سیگنال‌ها: {len(found_signals)}",
-            "",
-        ]
-
-        message = "\n\n".join(
-            header + found_signals
-        )
-
-        send_telegram(message)
-
+    # Do not record signals as sent unless Telegram succeeds.
+    if not send_telegram(report):
         print(
-            f"Sent {len(found_signals)} signals to Telegram."
+            "Telegram delivery failed. "
+            "Signals were not marked as sent."
+        )
+        return
+
+    now = datetime.now(timezone.utc).isoformat()
+
+    for signal in discovered:
+        sent_state[signal["id"]] = {
+            "symbol": signal["symbol"],
+            "timeframe": signal["timeframe"],
+            "direction": signal["direction"],
+            "sent_at": now,
+            "final_time": str(signal["final_time"])
+        }
+
+    # Keep at most the 500 most recently sent signal records.
+    if len(sent_state) > 500:
+        ordered = sorted(
+            sent_state.items(),
+            key=lambda item: item[1].get("sent_at", ""),
+            reverse=True
         )
 
-    else:
-        print(
-            "No valid four-phase hidden divergence found. "
-            "No Telegram message sent."
-        )
+        sent_state = dict(ordered[:500])
 
-    if errors:
-        print(
-            f"Completed with {len(errors)} data errors."
-        )
+    save_state(sent_state)
+
+    print("\nTelegram report sent successfully.")
 
 
 if __name__ == "__main__":
