@@ -19,6 +19,7 @@ MACD_SLOW = 26
 MACD_SIGNAL = 9
 
 MAX_SIGNAL_AGE = 5
+MAX_STORED_SIGNALS = 500
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
@@ -364,26 +365,27 @@ def download_data(symbol, interval, period):
         df = df.drop_duplicates(
             subset=["Timestamp"],
             keep="last"
-        )
-
-        df = df.reset_index(drop=True)
+        ).reset_index(drop=True)
 
         if df.empty:
             return None
 
         now = pd.Timestamp.now(tz="UTC")
 
-        minutes = {
+        interval_minutes = {
             "1d": 1440,
             "1h": 60,
             "15m": 15,
             "5m": 5
         }.get(interval)
 
-        if minutes:
+        if interval_minutes:
             candle_end = (
                 df["Timestamp"]
-                + pd.to_timedelta(minutes, unit="m")
+                + pd.to_timedelta(
+                    interval_minutes,
+                    unit="m"
+                )
             )
 
             df = df.loc[
@@ -421,8 +423,7 @@ def build_h4_from_h1(h1):
     if h1 is None or h1.empty:
         return None
 
-    data = h1.copy()
-    data = data.set_index("Timestamp")
+    data = h1.copy().set_index("Timestamp")
 
     grouped = data.resample(
         "4h",
@@ -449,8 +450,7 @@ def build_h4_from_h1(h1):
         subset=["Open", "High", "Low", "Close"]
     )
 
-    h4 = h4.drop(columns=["Count"])
-    h4 = h4.reset_index()
+    h4 = h4.drop(columns=["Count"]).reset_index()
 
     now = pd.Timestamp.now(tz="UTC")
 
@@ -500,8 +500,6 @@ def calculate_macd(df):
 
 # ============================================================
 # HISTOGRAM PHASES
-# Positive phase: MACD histogram above zero
-# Negative phase: MACD histogram below zero
 # ============================================================
 
 def get_macd_phases(df):
@@ -572,7 +570,7 @@ def get_extreme(df, start, end, kind):
 
 
 # ============================================================
-# HISTOGRAM EXTREMES IN THE ENTIRE PHASE
+# HISTOGRAM EXTREMES ACROSS THE ENTIRE PHASE
 # ============================================================
 
 def get_histogram_extreme(df, start, end, kind):
@@ -599,7 +597,13 @@ def get_histogram_extreme(df, start, end, kind):
 # SIGNAL ID
 # ============================================================
 
-def make_signal_id(symbol, timeframe, direction, points, trigger_time):
+def make_signal_id(
+    symbol,
+    timeframe,
+    direction,
+    points,
+    trigger_time
+):
     parts = [
         symbol,
         timeframe,
@@ -617,31 +621,39 @@ def make_signal_id(symbol, timeframe, direction, points, trigger_time):
 
 
 # ============================================================
-# LEVEL CRITERION DETECTION
+# LEVEL CRITERION DETECTION - TLM-04
 # ============================================================
 
 def detect_level_criterion(df, symbol, timeframe):
     """
-    Uses MACD histogram bars (MACD - Signal), not MACD line.
+    TLM-04 uses the MACD histogram (MACD - Signal), settings 12,26,9.
 
     SELL:
       N1 -> P1 -> N2 -> P2
-      Price Low(N2) < Price Low(N1)
-      Histogram minimum of all N2 bars > histogram minimum of all N1 bars
-      Price High(P2) < Price High(P1)
-      Confirmation: histogram in P2 crosses above the maximum histogram
-      value in P1 on a closed candle.
+
+      1. Price Low(N2) < Price Low(N1)
+      2. Minimum histogram over the entire N2 phase
+         > minimum histogram over the entire N1 phase
+      3. Price High(P2) < Price High(P1)
+      4. Maximum histogram over the entire P2 phase
+         > maximum histogram over the entire P1 phase
 
     BUY:
       P1 -> N1 -> P2 -> N2
-      Price High(P2) > Price High(P1)
-      Histogram maximum of all P2 bars < histogram maximum of all P1 bars
-      Price Low(N2) > Price Low(N1)
-      Confirmation: histogram in N2 crosses below the minimum histogram
-      value in N1 on a closed candle.
 
-    The trigger candle must be closed and no older than MAX_SIGNAL_AGE
-    closed candles.
+      1. Price High(P2) > Price High(P1)
+      2. Maximum histogram over the entire P2 phase
+         < maximum histogram over the entire P1 phase
+      3. Price Low(N2) > Price Low(N1)
+      4. Minimum histogram over the entire N2 phase
+         < minimum histogram over the entire N1 phase
+
+    All four phases must be consecutive and closed.
+    A qualifying pattern is reported only if its fourth phase
+    has ended within the last MAX_SIGNAL_AGE closed candles.
+
+    No separate histogram breakout is added because it would
+    contradict the whole-phase hidden-divergence condition.
     """
 
     if df is None or len(df) < 50:
@@ -690,8 +702,6 @@ def detect_level_criterion(df, symbol, timeframe):
 
         direction = None
         points = []
-        final_point = None
-        trigger_index = None
 
         # ----------------------------------------------------
         # SELL: N1 -> P1 -> N2 -> P2
@@ -700,78 +710,83 @@ def detect_level_criterion(df, symbol, timeframe):
         if signs == [-1, 1, -1, 1]:
 
             N1 = get_extreme(
-                data, phase1["start"], phase1["end"], "LOW"
+                data,
+                phase1["start"],
+                phase1["end"],
+                "LOW"
             )
 
             P1 = get_extreme(
-                data, phase2["start"], phase2["end"], "HIGH"
+                data,
+                phase2["start"],
+                phase2["end"],
+                "HIGH"
             )
 
             N2 = get_extreme(
-                data, phase3["start"], phase3["end"], "LOW"
+                data,
+                phase3["start"],
+                phase3["end"],
+                "LOW"
             )
 
             P2 = get_extreme(
-                data, phase4["start"], phase4["end"], "HIGH"
+                data,
+                phase4["start"],
+                phase4["end"],
+                "HIGH"
             )
 
             n1_hist_low = get_histogram_extreme(
-                data, phase1["start"], phase1["end"], "LOW"
-            )
-
-            n2_hist_low = get_histogram_extreme(
-                data, phase3["start"], phase3["end"], "LOW"
+                data,
+                phase1["start"],
+                phase1["end"],
+                "LOW"
             )
 
             p1_hist_high = get_histogram_extreme(
-                data, phase2["start"], phase2["end"], "HIGH"
+                data,
+                phase2["start"],
+                phase2["end"],
+                "HIGH"
+            )
+
+            n2_hist_low = get_histogram_extreme(
+                data,
+                phase3["start"],
+                phase3["end"],
+                "LOW"
+            )
+
+            p2_hist_high = get_histogram_extreme(
+                data,
+                phase4["start"],
+                phase4["end"],
+                "HIGH"
             )
 
             if any(
                 p is None
                 for p in [
                     N1, P1, N2, P2,
-                    n1_hist_low, n2_hist_low, p1_hist_high
+                    n1_hist_low, p1_hist_high,
+                    n2_hist_low, p2_hist_high
                 ]
             ):
                 continue
 
-            # The entire N2 histogram phase must stay above
-            # the minimum histogram value of N1.
             valid = (
                 N2["price"] < N1["price"]
                 and n2_hist_low["value"] > n1_hist_low["value"]
                 and P2["price"] < P1["price"]
+                and p2_hist_high["value"] > p1_hist_high["value"]
             )
 
             if not valid:
                 continue
 
-            # Find first closed candle in P2 where histogram
-            # crosses above the P1 histogram high reference.
-            p2_start = phase4["start"]
-            p2_end = phase4["end"]
-
-            reference = p1_hist_high["value"]
-
-            for j in range(max(p2_start, 1), p2_end + 1):
-                previous_value = float(
-                    data.loc[j - 1, "MACD_Hist"]
-                )
-
-                current_value = float(
-                    data.loc[j, "MACD_Hist"]
-                )
-
-                if (
-                    previous_value <= reference
-                    and current_value > reference
-                ):
-                    trigger_index = j
-                    break
-
-            if trigger_index is None:
-                continue
+            # Fourth phase must have completed.
+            trigger_index = phase4["end"]
 
             direction = "SELL"
 
@@ -782,11 +797,6 @@ def detect_level_criterion(df, symbol, timeframe):
                 ("P2", P2)
             ]
 
-            final_point = {
-                "index": trigger_index,
-                "time": data.loc[trigger_index, "Timestamp"]
-            }
-
         # ----------------------------------------------------
         # BUY: P1 -> N1 -> P2 -> N2
         # ----------------------------------------------------
@@ -794,78 +804,83 @@ def detect_level_criterion(df, symbol, timeframe):
         elif signs == [1, -1, 1, -1]:
 
             P1 = get_extreme(
-                data, phase1["start"], phase1["end"], "HIGH"
+                data,
+                phase1["start"],
+                phase1["end"],
+                "HIGH"
             )
 
             N1 = get_extreme(
-                data, phase2["start"], phase2["end"], "LOW"
+                data,
+                phase2["start"],
+                phase2["end"],
+                "LOW"
             )
 
             P2 = get_extreme(
-                data, phase3["start"], phase3["end"], "HIGH"
+                data,
+                phase3["start"],
+                phase3["end"],
+                "HIGH"
             )
 
             N2 = get_extreme(
-                data, phase4["start"], phase4["end"], "LOW"
+                data,
+                phase4["start"],
+                phase4["end"],
+                "LOW"
             )
 
             p1_hist_high = get_histogram_extreme(
-                data, phase1["start"], phase1["end"], "HIGH"
-            )
-
-            p2_hist_high = get_histogram_extreme(
-                data, phase3["start"], phase3["end"], "HIGH"
+                data,
+                phase1["start"],
+                phase1["end"],
+                "HIGH"
             )
 
             n1_hist_low = get_histogram_extreme(
-                data, phase2["start"], phase2["end"], "LOW"
+                data,
+                phase2["start"],
+                phase2["end"],
+                "LOW"
+            )
+
+            p2_hist_high = get_histogram_extreme(
+                data,
+                phase3["start"],
+                phase3["end"],
+                "HIGH"
+            )
+
+            n2_hist_low = get_histogram_extreme(
+                data,
+                phase4["start"],
+                phase4["end"],
+                "LOW"
             )
 
             if any(
                 p is None
                 for p in [
                     P1, N1, P2, N2,
-                    p1_hist_high, p2_hist_high, n1_hist_low
+                    p1_hist_high, n1_hist_low,
+                    p2_hist_high, n2_hist_low
                 ]
             ):
                 continue
 
-            # The entire P2 histogram phase must stay below
-            # the maximum histogram value of P1.
             valid = (
                 P2["price"] > P1["price"]
                 and p2_hist_high["value"] < p1_hist_high["value"]
                 and N2["price"] > N1["price"]
+                and n2_hist_low["value"] < n1_hist_low["value"]
             )
 
             if not valid:
                 continue
 
-            # Find first closed candle in N2 where histogram
-            # crosses below the N1 histogram low reference.
-            n2_start = phase4["start"]
-            n2_end = phase4["end"]
-
-            reference = n1_hist_low["value"]
-
-            for j in range(max(n2_start, 1), n2_end + 1):
-                previous_value = float(
-                    data.loc[j - 1, "MACD_Hist"]
-                )
-
-                current_value = float(
-                    data.loc[j, "MACD_Hist"]
-                )
-
-                if (
-                    previous_value >= reference
-                    and current_value < reference
-                ):
-                    trigger_index = j
-                    break
-
-            if trigger_index is None:
-                continue
+            # Fourth phase must have completed.
+            trigger_index = phase4["end"]
 
             direction = "BUY"
 
@@ -876,26 +891,29 @@ def detect_level_criterion(df, symbol, timeframe):
                 ("N2", N2)
             ]
 
-            final_point = {
-                "index": trigger_index,
-                "time": data.loc[trigger_index, "Timestamp"]
-            }
-
         else:
             continue
 
-        # The trigger must be within the last five closed candles.
-        age = last_closed_index - final_point["index"]
+        # ----------------------------------------------------
+        # FRESHNESS CHECK
+        # ----------------------------------------------------
+
+        age = last_closed_index - trigger_index
 
         if age < 0 or age > MAX_SIGNAL_AGE:
             continue
+
+        trigger_time = data.loc[
+            trigger_index,
+            "Timestamp"
+        ]
 
         signal_id = make_signal_id(
             symbol,
             timeframe,
             direction,
             points,
-            final_point["time"]
+            trigger_time
         )
 
         found.append({
@@ -905,8 +923,8 @@ def detect_level_criterion(df, symbol, timeframe):
             "direction": direction,
             "age": age,
             "points": points,
-            "final_time": final_point["time"],
-            "trigger_time": final_point["time"]
+            "final_time": trigger_time,
+            "trigger_time": trigger_time
         })
 
     found.sort(
@@ -919,12 +937,10 @@ def detect_level_criterion(df, symbol, timeframe):
     seen_directions = set()
 
     for signal in found:
-        direction = signal["direction"]
-
-        if direction in seen_directions:
+        if signal["direction"] in seen_directions:
             continue
 
-        seen_directions.add(direction)
+        seen_directions.add(signal["direction"])
         unique.append(signal)
 
     return unique
@@ -966,7 +982,7 @@ def format_signal(signal):
     )
 
     lines = [
-        "★★ LEVEL CRITERION ★★",
+        "★★ LEVEL CRITERION / TLM-04 ★★",
         "",
         f"{marker} | {signal['symbol']}",
         f"Timeframe: {signal['timeframe']}",
@@ -999,8 +1015,14 @@ def main():
     print("=" * 60)
     print("HADI MARKET REPORT")
     print("LEVEL CRITERION / TLM-04")
-    print(f"MACD Histogram: {MACD_FAST},{MACD_SLOW},{MACD_SIGNAL}")
-    print(f"Maximum confirmation age: {MAX_SIGNAL_AGE} candles")
+    print(
+        f"MACD Histogram: "
+        f"{MACD_FAST},{MACD_SLOW},{MACD_SIGNAL}"
+    )
+    print(
+        f"Maximum signal age: "
+        f"{MAX_SIGNAL_AGE} closed candles"
+    )
     print("Timeframes: D1, H4, H1, M15, M5")
     print("=" * 60)
 
@@ -1081,7 +1103,7 @@ def main():
         # SCAN ALL REQUESTED TIMEFRAMES
         # ----------------------------------------------------
 
-        for timeframe in TIMEFRAMES.keys():
+        for timeframe in TIMEFRAMES:
             df = data_by_timeframe.get(timeframe)
 
             if df is None:
@@ -1149,16 +1171,22 @@ def main():
             "trigger_time": str(signal["trigger_time"])
         }
 
-    if len(sent_state) > 500:
+    if len(sent_state) > MAX_STORED_SIGNALS:
         ordered = sorted(
             sent_state.items(),
             key=lambda item: item[1].get("sent_at", ""),
             reverse=True
         )
 
-        sent_state = dict(ordered[:500])
+        sent_state = dict(
+            ordered[:MAX_STORED_SIGNALS]
+        )
 
-    save_state(sent_state)
+    if not save_state(sent_state):
+        print(
+            "WARNING: Telegram was sent, but GitHub state "
+            "persistence failed. Duplicate alerts may occur."
+        )
 
     print("\nTelegram report sent successfully.")
 
