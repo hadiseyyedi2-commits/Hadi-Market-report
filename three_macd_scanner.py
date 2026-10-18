@@ -190,9 +190,9 @@ def scan_direction(data, direction, symbol_name, timeframe):
                 # The range ends immediately before the first bearish 4X
                 # signal-line-cross candle; that candle is not part of range.
                 if initial_cross:
-                    # HIGH RANGE uses the 60 candles immediately before the
+                    # HIGH RANGE uses the 100 candles immediately before the
                     # signal-line-cross candle; the crossover candle is excluded.
-                    start = max(0, i - 60)
+                    start = max(0, i - 100)
                     window = d.iloc[start:i]
                     if not window.empty:
                         idx = window["High"].astype(float).idxmax()
@@ -260,9 +260,9 @@ def scan_direction(data, direction, symbol_name, timeframe):
 
             if state == 1:
                 if initial_cross:
-                    # LOW RANGE uses the 60 candles immediately before the
+                    # LOW RANGE uses the 100 candles immediately before the
                     # signal-line-cross candle; the crossover candle is excluded.
-                    start = max(0, i - 60)
+                    start = max(0, i - 100)
                     window = d.iloc[start:i]
                     if not window.empty:
                         idx = window["Low"].astype(float).idxmin()
