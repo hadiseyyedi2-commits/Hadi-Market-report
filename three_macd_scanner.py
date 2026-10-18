@@ -200,6 +200,11 @@ def scan_direction(data, direction, symbol_name, timeframe):
                 else:
                     if float(c["High"]) > range_price:
                         range_price, range_time = float(c["High"]), t
+                    # Keep a real default-MACD zero-cross that occurs shortly
+                    # before the 4X signal cross; the user allows these events
+                    # to occur around one another, not only on the same candle.
+                    if default_first_cross:
+                        default_crossed_first = True
                 continue
 
             # Range touch from the candle after the initial 4X signal cross
@@ -279,6 +284,8 @@ def scan_direction(data, direction, symbol_name, timeframe):
                 else:
                     if float(c["Low"]) < range_price:
                         range_price, range_time = float(c["Low"]), t
+                    if default_first_cross:
+                        default_crossed_first = True
                 continue
 
             if touched_range:
