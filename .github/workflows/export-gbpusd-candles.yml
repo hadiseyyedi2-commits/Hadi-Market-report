@@ -1,0 +1,36 @@
+name: Export GBPUSD Candles
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '*/30 * * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  export-candles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: python -m pip install --upgrade pip pandas requests
+
+      - name: Download completed GBPUSD candles
+        run: python export_gbpusd_candles.py
+
+      - name: Upload candle files
+        uses: actions/upload-artifact@v4
+        with:
+          name: GBPUSD-candles
+          path: market_candles/
+          if-no-files-found: error
+          retention-days: 3
