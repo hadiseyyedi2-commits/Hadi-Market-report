@@ -140,27 +140,29 @@ def enrich(df):
 
 def scan_direction(data, direction, symbol_name, timeframe):
     """
-    BUY sequence:
-      4X below zero -> cross above zero -> record HIGH RANGE until 4X
-      bearish signal-line cross (4X still above zero).
-      Default MACD must be below zero by/after that bearish cross.
-      After 4X bullish signal-line cross (4X still above zero), default
-      must cross/stand above zero and remain above zero to quarter-MACD
-      downward zero-cross trigger. Price must not touch HIGH RANGE after
-      the initial bearish 4X signal cross.
+    Ordered, closed-candle state machine.
+
+    BUY:
+      4X crosses above zero; build HIGH RANGE until its first bearish
+      signal-line cross above zero (range excludes that cross candle).
+      Default MACD must actually cross below zero by the 4X bearish cross
+      or before the next 4X bullish signal-line cross.
+      After the 4X bullish cross, default MACD must actually cross back
+      above zero. Quarter MACD's downward zero-cross triggers only when
+      4X is above zero and its signal, and default MACD is above zero.
+      Any HIGH RANGE touch after the first 4X bearish cross invalidates.
+
     SELL is the exact mirror.
     """
     if data is None or len(data) < 10:
         return None
 
     d = data.reset_index(drop=True)
-    # State machine restarts whenever a new initial zero-line phase begins.
     state = 0
     range_price = None
     range_time = None
-    default_confirmed = False
-    default_recovered = False
-    initial_cross_index = None
+    default_crossed_first = False
+    default_crossed_back = False
     last_signal = None
 
     for i in range(1, len(d)):
@@ -172,139 +174,166 @@ def scan_direction(data, direction, symbol_name, timeframe):
         t = c["Timestamp"]
 
         if direction == "BUY":
-            # Phase 0: find 4X zero-line upward cross.
+            initial_cross = cross_down(x0, x1, xs0, xs1) and x1 > 0
+            second_cross = cross_up(x0, x1, xs0, xs1) and x1 > 0
+            default_first_cross = cross_zero_down(d0, d1)
+            default_return_cross = cross_zero_up(d0, d1)
+            quarter_trigger = cross_zero_down(q0, q1)
+            touched_range = state >= 2 and float(c["High"]) >= range_price
+
             if state == 0:
                 if cross_zero_up(x0, x1):
                     state = 1
                     range_price = float(c["High"])
                     range_time = t
+                    default_crossed_first = default_crossed_back = False
                 continue
 
-            # Phase 1: define high range until first bearish 4X signal cross.
             if state == 1:
-                bearish_cross = cross_down(x0, x1, xs0, xs1) and x1 > 0
-                if bearish_cross:
-                    # Freeze the range before the bearish-cross candle.
+                # The range ends immediately before the first bearish 4X
+                # signal-line-cross candle; that candle is not part of range.
+                if initial_cross:
                     state = 2
-                    initial_cross_index = i
-                    default_confirmed = d1 < 0
-                    default_recovered = False
+                    # A genuine default-MACD zero cross on this same candle
+                    # counts as occurring with the 4X cross.
+                    default_crossed_first = default_first_cross
                 else:
                     if float(c["High"]) > range_price:
                         range_price, range_time = float(c["High"]), t
+                    # Track the default cross before the first 4X signal cross
+                    # so the sequence can only pass on a real cross.
+                    if default_first_cross:
+                        default_crossed_first = True
                 continue
 
-            # After first bearish cross, any touch of the fixed HIGH RANGE invalidates.
-            if state >= 2 and float(c["High"]) >= range_price:
+            # Range touch from the candle after the initial 4X signal cross
+            # through the trigger candle invalidates the whole setup.
+            if touched_range:
                 state = 0
                 range_price = range_time = None
-                default_confirmed = default_recovered = False
-                initial_cross_index = None
+                default_crossed_first = default_crossed_back = False
                 continue
 
             if state == 2:
-                if d1 < 0:
-                    default_confirmed = True
-                # Need second (bullish) 4X signal cross while 4X remains > zero.
-                if cross_up(x0, x1, xs0, xs1) and x1 > 0:
-                    if not default_confirmed:
-                        # Keep waiting for default to go below zero, but the
-                        # structure only remains valid while 4X stays above zero.
-                        state = 3
-                    else:
-                        state = 3
-                    default_recovered = d1 > 0
-                if x1 <= 0:
+                if default_first_cross:
+                    default_crossed_first = True
+                # Required order: default MACD has crossed below zero, then
+                # 4X makes its bullish signal-line cross.
+                if second_cross:
+                    if not default_crossed_first:
+                        state = 0
+                        range_price = range_time = None
+                        continue
+                    state = 3
+                    default_crossed_back = default_return_cross
+                elif x1 <= 0:
                     state = 0
+                    range_price = range_time = None
+                    default_crossed_first = default_crossed_back = False
                 continue
 
             if state == 3:
                 if x1 <= 0:
                     state = 0
+                    range_price = range_time = None
+                    default_crossed_first = default_crossed_back = False
                     continue
-                if d1 < 0:
-                    default_confirmed = True
-                # Default must be above zero after the 4X bullish cross.
-                if cross_zero_up(d0, d1) or d1 > 0:
-                    if default_confirmed:
-                        default_recovered = True
-                if default_recovered and d1 <= 0:
+                if default_return_cross:
+                    default_crossed_back = True
+                # Once the default MACD has returned above zero, it must remain
+                # there through the quarter-MACD trigger.
+                if default_crossed_back and d1 <= 0:
                     state = 0
+                    range_price = range_time = None
+                    default_crossed_first = default_crossed_back = False
                     continue
-                if default_confirmed and default_recovered and x1 > xs1 and x1 > 0 and d1 > 0 and cross_zero_down(q0, q1):
-                    # Trigger is the closed candle's quarter-MACD downward zero cross.
+                if (default_crossed_first and default_crossed_back
+                        and x1 > xs1 and x1 > 0 and d1 > 0 and quarter_trigger):
                     last_signal = {
                         "symbol": symbol_name, "timeframe": timeframe, "direction": "BUY",
                         "time": t, "price": float(c["Close"]),
                         "range_name": "HIGH RANGE", "range_price": float(range_price),
-                        "range_time": range_time, "id": signal_id(symbol_name, timeframe, "BUY", t, range_price)
+                        "range_time": range_time,
+                        "id": signal_id(symbol_name, timeframe, "BUY", t, range_price)
                     }
                     state = 0
                     range_price = range_time = None
-                    default_confirmed = default_recovered = False
-                    initial_cross_index = None
+                    default_crossed_first = default_crossed_back = False
 
-        else:  # SELL: exact mirror of BUY
+        else:  # SELL: exact mirror
+            initial_cross = cross_up(x0, x1, xs0, xs1) and x1 < 0
+            second_cross = cross_down(x0, x1, xs0, xs1) and x1 < 0
+            default_first_cross = cross_zero_up(d0, d1)
+            default_return_cross = cross_zero_down(d0, d1)
+            quarter_trigger = cross_zero_up(q0, q1)
+            touched_range = state >= 2 and float(c["Low"]) <= range_price
+
             if state == 0:
                 if cross_zero_down(x0, x1):
                     state = 1
                     range_price = float(c["Low"])
                     range_time = t
+                    default_crossed_first = default_crossed_back = False
                 continue
 
             if state == 1:
-                bullish_cross = cross_up(x0, x1, xs0, xs1) and x1 < 0
-                if bullish_cross:
-                    # Freeze the range before the bullish-cross candle.
+                if initial_cross:
                     state = 2
-                    initial_cross_index = i
-                    default_confirmed = d1 > 0
-                    default_recovered = False
+                    default_crossed_first = default_first_cross
                 else:
                     if float(c["Low"]) < range_price:
                         range_price, range_time = float(c["Low"]), t
+                    if default_first_cross:
+                        default_crossed_first = True
                 continue
 
-            if state >= 2 and float(c["Low"]) <= range_price:
+            if touched_range:
                 state = 0
                 range_price = range_time = None
-                default_confirmed = default_recovered = False
-                initial_cross_index = None
+                default_crossed_first = default_crossed_back = False
                 continue
 
             if state == 2:
-                if d1 > 0:
-                    default_confirmed = True
-                if cross_down(x0, x1, xs0, xs1) and x1 < 0:
+                if default_first_cross:
+                    default_crossed_first = True
+                if second_cross:
+                    if not default_crossed_first:
+                        state = 0
+                        range_price = range_time = None
+                        continue
                     state = 3
-                    default_recovered = d1 < 0
-                if x1 >= 0:
+                    default_crossed_back = default_return_cross
+                elif x1 >= 0:
                     state = 0
+                    range_price = range_time = None
+                    default_crossed_first = default_crossed_back = False
                 continue
 
             if state == 3:
                 if x1 >= 0:
                     state = 0
+                    range_price = range_time = None
+                    default_crossed_first = default_crossed_back = False
                     continue
-                if d1 > 0:
-                    default_confirmed = True
-                if cross_zero_down(d0, d1) or d1 < 0:
-                    if default_confirmed:
-                        default_recovered = True
-                if default_recovered and d1 >= 0:
+                if default_return_cross:
+                    default_crossed_back = True
+                if default_crossed_back and d1 >= 0:
                     state = 0
+                    range_price = range_time = None
+                    default_crossed_first = default_crossed_back = False
                     continue
-                if default_confirmed and default_recovered and x1 < xs1 and x1 < 0 and d1 < 0 and cross_zero_up(q0, q1):
+                if (default_crossed_first and default_crossed_back
+                        and x1 < xs1 and x1 < 0 and d1 < 0 and quarter_trigger):
                     last_signal = {
                         "symbol": symbol_name, "timeframe": timeframe, "direction": "SELL",
                         "time": t, "price": float(c["Close"]),
                         "range_name": "LOW RANGE", "range_price": float(range_price),
-                        "range_time": range_time, "id": signal_id(symbol_name, timeframe, "SELL", t, range_price)
+                        "range_time": range_time,
+                        "id": signal_id(symbol_name, timeframe, "SELL", t, range_price)
                     }
                     state = 0
                     range_price = range_time = None
-                    default_confirmed = default_recovered = False
-                    initial_cross_index = None
+                    default_crossed_first = default_crossed_back = False
 
     return last_signal
 
@@ -440,14 +469,17 @@ def main():
                 print("Scan failed:", name, timeframe, str(exc)[:180])
         time.sleep(0.15)
 
-    # Exactly one newest signal per symbol + timeframe, regardless of direction.
-    latest = {}
+    # Choose the newest unsent valid signal per symbol + timeframe.
+    # A previously sent latest candidate must not hide another unsent candidate.
+    latest_unsent = {}
     for s in found:
+        if s["id"] in sent_state:
+            continue
         key = f'{s["symbol"]}|{s["timeframe"]}'
-        if key not in latest or pd.Timestamp(s["time"]) > pd.Timestamp(latest[key]["time"]):
-            latest[key] = s
+        if key not in latest_unsent or pd.Timestamp(s["time"]) > pd.Timestamp(latest_unsent[key]["time"]):
+            latest_unsent[key] = s
 
-    new_signals = [s for s in latest.values() if s["id"] not in sent_state]
+    new_signals = list(latest_unsent.values())
     if not new_signals:
         print("No new signals.")
         return
