@@ -200,10 +200,6 @@ def scan_direction(data, direction, symbol_name, timeframe):
                 else:
                     if float(c["High"]) > range_price:
                         range_price, range_time = float(c["High"]), t
-                    # Track the default cross before the first 4X signal cross
-                    # so the sequence can only pass on a real cross.
-                    if default_first_cross:
-                        default_crossed_first = True
                 continue
 
             # Range touch from the candle after the initial 4X signal cross
@@ -283,8 +279,6 @@ def scan_direction(data, direction, symbol_name, timeframe):
                 else:
                     if float(c["Low"]) < range_price:
                         range_price, range_time = float(c["Low"]), t
-                    if default_first_cross:
-                        default_crossed_first = True
                 continue
 
             if touched_range:
