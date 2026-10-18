@@ -186,12 +186,12 @@ def scan_direction(data, direction, symbol_name, timeframe):
                 if bearish_cross:
                     # Freeze the range before the bearish-cross candle.
                     state = 2
-                else:
-                    if float(c["High"]) > range_price:
-                        range_price, range_time = float(c["High"]), t
                     initial_cross_index = i
                     default_confirmed = d1 < 0
                     default_recovered = False
+                else:
+                    if float(c["High"]) > range_price:
+                        range_price, range_time = float(c["High"]), t
                 continue
 
             # After first bearish cross, any touch of the fixed HIGH RANGE invalidates.
@@ -257,12 +257,12 @@ def scan_direction(data, direction, symbol_name, timeframe):
                 if bullish_cross:
                     # Freeze the range before the bullish-cross candle.
                     state = 2
-                else:
-                    if float(c["Low"]) < range_price:
-                        range_price, range_time = float(c["Low"]), t
                     initial_cross_index = i
                     default_confirmed = d1 > 0
                     default_recovered = False
+                else:
+                    if float(c["Low"]) < range_price:
+                        range_price, range_time = float(c["Low"]), t
                 continue
 
             if state >= 2 and float(c["Low"]) <= range_price:
