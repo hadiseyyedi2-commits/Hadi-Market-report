@@ -2422,5 +2422,13 @@
     "trigger_time": "2026-07-20 20:00:00+00:00",
     "trigger_price": 0.809440016746521,
     "sent_at": "2026-10-18T17:43:15.892283+00:00"
+  },
+  "13fcda78bc00bcb026c4c9546f90ea7125f2b2950fa982b420dd7f8fb3e68440": {
+    "symbol": "EURCHF",
+    "timeframe": "D1",
+    "direction": "SELL",
+    "trigger_time": "2025-07-17 23:00:00+00:00",
+    "trigger_price": 0.9325500130653381,
+    "sent_at": "2026-10-18T23:31:35.298678+00:00"
   }
 }
