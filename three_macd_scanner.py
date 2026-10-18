@@ -182,12 +182,13 @@ def scan_direction(data, direction, symbol_name, timeframe):
 
             # Phase 1: define high range until first bearish 4X signal cross.
             if state == 1:
-                if float(c["High"]) > range_price:
-                    range_price, range_time = float(c["High"]), t
-                if cross_down(xs0 if False else x0, x1, xs0, xs1) and x1 > 0:
-                    # Freeze range; the bearish cross candle itself belongs to
-                    # the pre-cross range only if its high set a new extreme.
+                bearish_cross = cross_down(x0, x1, xs0, xs1) and x1 > 0
+                if bearish_cross:
+                    # Freeze the range before the bearish-cross candle.
                     state = 2
+                else:
+                    if float(c["High"]) > range_price:
+                        range_price, range_time = float(c["High"]), t
                     initial_cross_index = i
                     default_confirmed = d1 < 0
                     default_recovered = False
@@ -252,10 +253,13 @@ def scan_direction(data, direction, symbol_name, timeframe):
                 continue
 
             if state == 1:
-                if float(c["Low"]) < range_price:
-                    range_price, range_time = float(c["Low"]), t
-                if cross_up(x0, x1, xs0, xs1) and x1 < 0:
+                bullish_cross = cross_up(x0, x1, xs0, xs1) and x1 < 0
+                if bullish_cross:
+                    # Freeze the range before the bullish-cross candle.
                     state = 2
+                else:
+                    if float(c["Low"]) < range_price:
+                        range_price, range_time = float(c["Low"]), t
                     initial_cross_index = i
                     default_confirmed = d1 > 0
                     default_recovered = False
