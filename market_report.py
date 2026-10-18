@@ -631,12 +631,11 @@ def detect_level_criterion(df, symbol, timeframe):
         N1 -> P1 -> N2 -> P2
 
         1. Price Low(N2) < Price Low(N1).
-        2. Minimum histogram over the entire N2 phase must be
-           strictly above the minimum histogram over N1.
-           Equality is not accepted for this condition.
+        2. Histogram at the N2 price-low candle must be above the
+           histogram at the N1 price-low candle.
         3. Price High(P2) < Price High(P1).
-        4. Maximum histogram reached so far in P2 must be
-           greater than the maximum histogram in P1.
+        4. Histogram at the P2 price-high candle must be above
+           the histogram at the P1 price-high candle.
         5. Trigger as soon as the hidden divergence is identified
            on a closed candle in P2. P2 does not need to finish.
 
@@ -729,45 +728,17 @@ def detect_level_criterion(df, symbol, timeframe):
                     "LOW"
                 )
 
-                n1_hist_low = get_histogram_extreme(
-                    data,
-                    phase1["start"],
-                    phase1["end"],
-                    "LOW"
-                )
-
-                p1_hist_high = get_histogram_extreme(
-                    data,
-                    phase2["start"],
-                    phase2["end"],
-                    "HIGH"
-                )
-
-                n2_hist_low = get_histogram_extreme(
-                    data,
-                    phase3["start"],
-                    phase3["end"],
-                    "LOW"
-                )
-
                 if any(
                     point is None
-                    for point in [
-                        N1,
-                        P1,
-                        N2,
-                        n1_hist_low,
-                        p1_hist_high,
-                        n2_hist_low
-                    ]
+                    for point in [N1, P1, N2]
                 ):
                     continue
 
                 # Regular divergence in the negative phases.
-                # The histogram comparison covers the ENTIRE N2 phase.
+                # Compare histogram values at the exact price-low candles.
                 if not (
                     N2["price"] < N1["price"]
-                    and n2_hist_low["value"] > n1_hist_low["value"]
+                    and N2["macd"] > N1["macd"]
                 ):
                     continue
 
@@ -780,22 +751,15 @@ def detect_level_criterion(df, symbol, timeframe):
                     "HIGH"
                 )
 
-                p2_hist_high = get_histogram_extreme(
-                    data,
-                    phase4["start"],
-                    trigger_index,
-                    "HIGH"
-                )
-
-                if P2 is None or p2_hist_high is None:
+                if P2 is None:
                     continue
 
                 # Hidden divergence:
                 # price high P2 is lower than P1,
-                # histogram high P2 is higher than P1.
+                # histogram at the P2 price-high candle is higher than P1.
                 if not (
                     P2["price"] < P1["price"]
-                    and p2_hist_high["value"] > p1_hist_high["value"]
+                    and P2["macd"] > P1["macd"]
                 ):
                     continue
 
@@ -835,44 +799,17 @@ def detect_level_criterion(df, symbol, timeframe):
                     "HIGH"
                 )
 
-                p1_hist_high = get_histogram_extreme(
-                    data,
-                    phase1["start"],
-                    phase1["end"],
-                    "HIGH"
-                )
-
-                n1_hist_low = get_histogram_extreme(
-                    data,
-                    phase2["start"],
-                    phase2["end"],
-                    "LOW"
-                )
-
-                p2_hist_high = get_histogram_extreme(
-                    data,
-                    phase3["start"],
-                    phase3["end"],
-                    "HIGH"
-                )
-
                 if any(
                     point is None
-                    for point in [
-                        P1,
-                        N1,
-                        P2,
-                        p1_hist_high,
-                        n1_hist_low,
-                        p2_hist_high
-                    ]
+                    for point in [P1, N1, P2]
                 ):
                     continue
 
-                # Mirror of the SELL price/high-histogram conditions.
+                # Mirror of the SELL price/high-histogram conditions,
+                # comparing histogram values at the exact price-high candles.
                 if not (
                     P2["price"] > P1["price"]
-                    and p2_hist_high["value"] < p1_hist_high["value"]
+                    and P2["macd"] < P1["macd"]
                 ):
                     continue
 
@@ -884,20 +821,13 @@ def detect_level_criterion(df, symbol, timeframe):
                     "LOW"
                 )
 
-                n2_hist_low = get_histogram_extreme(
-                    data,
-                    phase4["start"],
-                    trigger_index,
-                    "LOW"
-                )
-
-                if N2 is None or n2_hist_low is None:
+                if N2 is None:
                     continue
 
-                # BUY is the mirror of SELL.
+                # BUY is the mirror of SELL, using histogram values at the exact price-low candles.
                 if not (
                     N2["price"] > N1["price"]
-                    and n2_hist_low["value"] < n1_hist_low["value"]
+                    and N2["macd"] < N1["macd"]
                 ):
                     continue
 
