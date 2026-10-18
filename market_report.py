@@ -570,7 +570,7 @@ def get_extreme(df, start, end, kind):
 
 
 # ============================================================
-# HISTOGRAM EXTREMES ACROSS THE ENTIRE PHASE
+# HISTOGRAM EXTREMES
 # ============================================================
 
 def get_histogram_extreme(df, start, end, kind):
@@ -626,34 +626,27 @@ def make_signal_id(
 
 def detect_level_criterion(df, symbol, timeframe):
     """
-    TLM-04 uses the MACD histogram (MACD - Signal), settings 12,26,9.
+    MACD Histogram: 12,26,9.
 
     SELL:
-      N1 -> P1 -> N2 -> P2
+        N1 -> P1 -> N2 -> P2
 
-      1. Price Low(N2) < Price Low(N1)
-      2. Minimum histogram over the entire N2 phase
-         > minimum histogram over the entire N1 phase
-      3. Price High(P2) < Price High(P1)
-      4. Maximum histogram over the entire P2 phase
-         > maximum histogram over the entire P1 phase
+        1. Price Low(N2) < Price Low(N1).
+        2. Minimum histogram over the entire N2 phase must be
+           strictly above the minimum histogram over N1.
+           Equality is not accepted for this condition.
+        3. Price High(P2) < Price High(P1).
+        4. Maximum histogram reached so far in P2 must be
+           greater than the maximum histogram in P1.
+        5. Trigger as soon as the hidden divergence is identified
+           on a closed candle in P2. P2 does not need to finish.
 
     BUY:
-      P1 -> N1 -> P2 -> N2
+        P1 -> N1 -> P2 -> N2
 
-      1. Price High(P2) > Price High(P1)
-      2. Maximum histogram over the entire P2 phase
-         < maximum histogram over the entire P1 phase
-      3. Price Low(N2) > Price Low(N1)
-      4. Minimum histogram over the entire N2 phase
-         < minimum histogram over the entire N1 phase
+        Mirror of the SELL structure.
 
-    All four phases must be consecutive and closed.
-    A qualifying pattern is reported only if its fourth phase
-    has ended within the last MAX_SIGNAL_AGE closed candles.
-
-    No separate histogram breakout is added because it would
-    contradict the whole-phase hidden-divergence condition.
+    Only closed candles are evaluated.
     """
 
     if df is None or len(df) < 50:
@@ -700,6 +693,11 @@ def detect_level_criterion(df, symbol, timeframe):
             phase4["sign"]
         ]
 
+        # Only trigger while phase 4 is still the active phase.
+        # Do not use a completed historical phase to create a new alert.
+        if phase4["end"] != last_closed_index:
+            continue
+
         direction = None
         points = []
 
@@ -730,13 +728,6 @@ def detect_level_criterion(df, symbol, timeframe):
                 "LOW"
             )
 
-            P2 = get_extreme(
-                data,
-                phase4["start"],
-                phase4["end"],
-                "HIGH"
-            )
-
             n1_hist_low = get_histogram_extreme(
                 data,
                 phase1["start"],
@@ -758,35 +749,54 @@ def detect_level_criterion(df, symbol, timeframe):
                 "LOW"
             )
 
-            p2_hist_high = get_histogram_extreme(
-                data,
-                phase4["start"],
-                phase4["end"],
-                "HIGH"
-            )
-
             if any(
-                p is None
-                for p in [
-                    N1, P1, N2, P2,
-                    n1_hist_low, p1_hist_high,
-                    n2_hist_low, p2_hist_high
+                point is None
+                for point in [
+                    N1,
+                    P1,
+                    N2,
+                    n1_hist_low,
+                    p1_hist_high,
+                    n2_hist_low
                 ]
             ):
                 continue
 
-            valid = (
+            # Regular divergence in the negative phases.
+            # The histogram comparison covers the ENTIRE N2 phase.
+            if not (
                 N2["price"] < N1["price"]
                 and n2_hist_low["value"] > n1_hist_low["value"]
-                and P2["price"] < P1["price"]
-                and p2_hist_high["value"] > p1_hist_high["value"]
-            )
-
-            if not valid:
+            ):
                 continue
 
-            # Fourth phase must have completed.
-            trigger_index = phase4["end"]
+            # Dynamic P2: only use data available up to the current
+            # closed candle. Never use the future end of phase 4.
+            P2 = get_extreme(
+                data,
+                phase4["start"],
+                last_closed_index,
+                "HIGH"
+            )
+
+            p2_hist_high = get_histogram_extreme(
+                data,
+                phase4["start"],
+                last_closed_index,
+                "HIGH"
+            )
+
+            if P2 is None or p2_hist_high is None:
+                continue
+
+            # Hidden divergence:
+            # price high P2 is lower than P1,
+            # histogram high P2 is higher than P1.
+            if not (
+                P2["price"] < P1["price"]
+                and p2_hist_high["value"] > p1_hist_high["value"]
+            ):
+                continue
 
             direction = "SELL"
 
@@ -824,13 +834,6 @@ def detect_level_criterion(df, symbol, timeframe):
                 "HIGH"
             )
 
-            N2 = get_extreme(
-                data,
-                phase4["start"],
-                phase4["end"],
-                "LOW"
-            )
-
             p1_hist_high = get_histogram_extreme(
                 data,
                 phase1["start"],
@@ -852,35 +855,50 @@ def detect_level_criterion(df, symbol, timeframe):
                 "HIGH"
             )
 
-            n2_hist_low = get_histogram_extreme(
-                data,
-                phase4["start"],
-                phase4["end"],
-                "LOW"
-            )
-
             if any(
-                p is None
-                for p in [
-                    P1, N1, P2, N2,
-                    p1_hist_high, n1_hist_low,
-                    p2_hist_high, n2_hist_low
+                point is None
+                for point in [
+                    P1,
+                    N1,
+                    P2,
+                    p1_hist_high,
+                    n1_hist_low,
+                    p2_hist_high
                 ]
             ):
                 continue
 
-            valid = (
+            # Mirror of the SELL price/high-histogram conditions.
+            if not (
                 P2["price"] > P1["price"]
                 and p2_hist_high["value"] < p1_hist_high["value"]
-                and N2["price"] > N1["price"]
-                and n2_hist_low["value"] < n1_hist_low["value"]
-            )
-
-            if not valid:
+            ):
                 continue
 
-            # Fourth phase must have completed.
-            trigger_index = phase4["end"]
+            # Dynamic N2: only use candles up to the current closed bar.
+            N2 = get_extreme(
+                data,
+                phase4["start"],
+                last_closed_index,
+                "LOW"
+            )
+
+            n2_hist_low = get_histogram_extreme(
+                data,
+                phase4["start"],
+                last_closed_index,
+                "LOW"
+            )
+
+            if N2 is None or n2_hist_low is None:
+                continue
+
+            # BUY is the mirror of SELL.
+            if not (
+                N2["price"] > N1["price"]
+                and n2_hist_low["value"] < n1_hist_low["value"]
+            ):
+                continue
 
             direction = "BUY"
 
@@ -894,19 +912,14 @@ def detect_level_criterion(df, symbol, timeframe):
         else:
             continue
 
-        # ----------------------------------------------------
-        # FRESHNESS CHECK
-        # ----------------------------------------------------
-
-        age = last_closed_index - trigger_index
-
-        if age < 0 or age > MAX_SIGNAL_AGE:
-            continue
-
+        # The signal is triggered on the latest closed candle.
+        trigger_index = last_closed_index
         trigger_time = data.loc[
             trigger_index,
             "Timestamp"
         ]
+
+        age = 0
 
         signal_id = make_signal_id(
             symbol,
@@ -932,7 +945,7 @@ def detect_level_criterion(df, symbol, timeframe):
         reverse=True
     )
 
-    # Keep the newest signal per direction for this symbol/timeframe.
+    # Keep only the newest signal per direction for this symbol/timeframe.
     unique = []
     seen_directions = set()
 
@@ -1015,14 +1028,17 @@ def main():
     print("=" * 60)
     print("HADI MARKET REPORT")
     print("LEVEL CRITERION / TLM-04")
+
     print(
         f"MACD Histogram: "
         f"{MACD_FAST},{MACD_SLOW},{MACD_SIGNAL}"
     )
+
     print(
         f"Maximum signal age: "
         f"{MAX_SIGNAL_AGE} closed candles"
     )
+
     print("Timeframes: D1, H4, H1, M15, M5")
     print("=" * 60)
 
