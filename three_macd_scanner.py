@@ -430,10 +430,10 @@ def main():
                 print("Scan failed:", name, timeframe, str(exc)[:180])
         time.sleep(0.15)
 
-    # Latest signal per symbol + timeframe + direction; preserve BUY and SELL independently.
+    # Exactly one newest signal per symbol + timeframe, regardless of direction.
     latest = {}
     for s in found:
-        key = f'{s["symbol"]}|{s["timeframe"]}|{s["direction"]}'
+        key = f'{s["symbol"]}|{s["timeframe"]}'
         if key not in latest or pd.Timestamp(s["time"]) > pd.Timestamp(latest[key]["time"]):
             latest[key] = s
 
