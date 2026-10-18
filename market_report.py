@@ -678,15 +678,20 @@ def detect_level_criterion(df, symbol, timeframe):
 
     last_closed_index = len(data) - 1
     found = []
+    found_directions = set()
 
-    for i in range(len(phases) - 3):
+    # Scan newest phases and candles first. Once the latest valid signal
+    # for a direction is found, older history for that direction is unnecessary.
+    for i in range(len(phases) - 4, -1, -1):
+        if len(found_directions) == 2:
+            break
+
         phase1 = phases[i]
         phase2 = phases[i + 1]
         phase3 = phases[i + 2]
         phase4 = phases[i + 3]
 
-        # Evaluate every closed candle in this phase, including historical phases.
-        for trigger_index in range(phase4["start"], min(phase4["end"], last_closed_index) + 1):
+        for trigger_index in range(min(phase4["end"], last_closed_index), phase4["start"] - 1, -1):
             signs = [
                 phase1["sign"],
                 phase2["sign"],
@@ -930,6 +935,8 @@ def detect_level_criterion(df, symbol, timeframe):
                 "final_time": trigger_time,
                 "trigger_time": trigger_time
             })
+            found_directions.add(direction)
+            break
 
     found.sort(
         key=lambda item: item["final_time"],
