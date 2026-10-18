@@ -171,7 +171,8 @@ def scan_direction(data, direction, symbol_name, timeframe):
         t = c["Timestamp"]
 
         if direction == "BUY":
-            initial_cross = cross_down(x0, x1, xs0, xs1) and x1 > 0
+            signal_cross = cross_down(x0, x1, xs0, xs1)
+            initial_cross = signal_cross and x1 > 0
             second_cross = cross_up(x0, x1, xs0, xs1) and x1 > 0
             default_first_cross = cross_zero_down(d0, d1)
             default_return_cross = cross_zero_up(d0, d1)
@@ -187,6 +188,14 @@ def scan_direction(data, direction, symbol_name, timeframe):
                 continue
 
             if state == 1:
+                # A bearish 4X signal-line cross is valid only while 4X stays
+                # above zero. If it is at/below zero on that candle, invalidate
+                # this setup instead of continuing to search for a later cross.
+                if signal_cross and x1 <= 0:
+                    state = 0
+                    range_price = range_time = None
+                    default_crossed_first = default_crossed_back = False
+                    continue
                 # The range ends immediately before the first bearish 4X
                 # signal-line-cross candle; that candle is not part of range.
                 if initial_cross:
@@ -243,7 +252,8 @@ def scan_direction(data, direction, symbol_name, timeframe):
                     default_crossed_first = default_crossed_back = False
 
         else:  # SELL: exact mirror
-            initial_cross = cross_up(x0, x1, xs0, xs1) and x1 < 0
+            signal_cross = cross_up(x0, x1, xs0, xs1)
+            initial_cross = signal_cross and x1 < 0
             second_cross = cross_down(x0, x1, xs0, xs1) and x1 < 0
             default_first_cross = cross_zero_up(d0, d1)
             default_return_cross = cross_zero_down(d0, d1)
@@ -259,6 +269,13 @@ def scan_direction(data, direction, symbol_name, timeframe):
                 continue
 
             if state == 1:
+                # Mirror condition: the first bullish 4X signal-line cross for
+                # SELL is valid only while 4X remains below zero.
+                if signal_cross and x1 >= 0:
+                    state = 0
+                    range_price = range_time = None
+                    default_crossed_first = default_crossed_back = False
+                    continue
                 if initial_cross:
                     # LOW RANGE uses the 100 candles immediately before the
                     # signal-line-cross candle; the crossover candle is excluded.
