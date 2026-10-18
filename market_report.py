@@ -691,7 +691,7 @@ def detect_level_criterion(df, symbol, timeframe):
         phase3 = phases[i + 2]
         phase4 = phases[i + 3]
 
-        for trigger_index in range(min(phase4["end"], last_closed_index), phase4["start"] - 1, -1):
+        for trigger_index in range(phase4["start"], min(phase4["end"], last_closed_index) + 1):
             signs = [
                 phase1["sign"],
                 phase2["sign"],
