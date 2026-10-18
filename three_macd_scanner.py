@@ -158,7 +158,6 @@ def scan_direction(data, direction, symbol_name, timeframe):
     state = 0
     range_price = None
     range_time = None
-    range_window = []
     default_crossed_first = False
     default_crossed_back = False
     last_signal = None
@@ -182,7 +181,6 @@ def scan_direction(data, direction, symbol_name, timeframe):
             if state == 0:
                 if cross_zero_up(x0, x1):
                     state = 1
-                    range_window = [(t, float(c["High"]))]
                     range_price = float(c["High"])
                     range_time = t
                     default_crossed_first = default_crossed_back = False
@@ -192,19 +190,17 @@ def scan_direction(data, direction, symbol_name, timeframe):
                 # The range ends immediately before the first bearish 4X
                 # signal-line-cross candle; that candle is not part of range.
                 if initial_cross:
-                    # HIGH RANGE is the highest High among the 60 candles
-                    # immediately preceding this signal-line-cross candle.
-                    # The crossover candle itself is excluded.
-                    window = range_window[-60:]
-                    if window:
-                        range_time, range_price = max(window, key=lambda item: item[1])
-                        range_price = float(range_price)
+                    # HIGH RANGE uses the 60 candles immediately before the
+                    # signal-line-cross candle; the crossover candle is excluded.
+                    start = max(0, i - 60)
+                    window = d.iloc[start:i]
+                    if not window.empty:
+                        idx = window["High"].astype(float).idxmax()
+                        range_time = d.loc[idx, "Timestamp"]
+                        range_price = float(d.loc[idx, "High"])
                     state = 2
                     default_crossed_first = default_first_cross
                 else:
-                    range_window.append((t, float(c["High"])))
-                    if len(range_window) > 60:
-                        range_window.pop(0)
                     if default_first_cross:
                         default_crossed_first = True
                 continue
@@ -257,7 +253,6 @@ def scan_direction(data, direction, symbol_name, timeframe):
             if state == 0:
                 if cross_zero_down(x0, x1):
                     state = 1
-                    range_window = [(t, float(c["Low"]))]
                     range_price = float(c["Low"])
                     range_time = t
                     default_crossed_first = default_crossed_back = False
@@ -265,19 +260,17 @@ def scan_direction(data, direction, symbol_name, timeframe):
 
             if state == 1:
                 if initial_cross:
-                    # LOW RANGE is the lowest Low among the 60 candles
-                    # immediately preceding this signal-line-cross candle.
-                    # The crossover candle itself is excluded.
-                    window = range_window[-60:]
-                    if window:
-                        range_time, range_price = min(window, key=lambda item: item[1])
-                        range_price = float(range_price)
+                    # LOW RANGE uses the 60 candles immediately before the
+                    # signal-line-cross candle; the crossover candle is excluded.
+                    start = max(0, i - 60)
+                    window = d.iloc[start:i]
+                    if not window.empty:
+                        idx = window["Low"].astype(float).idxmin()
+                        range_time = d.loc[idx, "Timestamp"]
+                        range_price = float(d.loc[idx, "Low"])
                     state = 2
                     default_crossed_first = default_first_cross
                 else:
-                    range_window.append((t, float(c["Low"])))
-                    if len(range_window) > 60:
-                        range_window.pop(0)
                     if default_first_cross:
                         default_crossed_first = True
                 continue
