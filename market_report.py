@@ -18,7 +18,7 @@ MACD_FAST = 12
 MACD_SLOW = 26
 MACD_SIGNAL = 9
 
-MAX_SIGNAL_AGE = 5
+MAX_SIGNAL_AGE = None
 MAX_STORED_SIGNALS = 500
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
@@ -686,259 +686,256 @@ def detect_level_criterion(df, symbol, timeframe):
         phase3 = phases[i + 2]
         phase4 = phases[i + 3]
 
-        signs = [
-            phase1["sign"],
-            phase2["sign"],
-            phase3["sign"],
-            phase4["sign"]
-        ]
-
-        # Only trigger while phase 4 is still the active phase.
-        # Do not use a completed historical phase to create a new alert.
-        if phase4["end"] != last_closed_index:
-            continue
-
-        direction = None
-        points = []
-
-        # ----------------------------------------------------
-        # SELL: N1 -> P1 -> N2 -> P2
-        # ----------------------------------------------------
-
-        if signs == [-1, 1, -1, 1]:
-
-            N1 = get_extreme(
-                data,
-                phase1["start"],
-                phase1["end"],
-                "LOW"
-            )
-
-            P1 = get_extreme(
-                data,
-                phase2["start"],
-                phase2["end"],
-                "HIGH"
-            )
-
-            N2 = get_extreme(
-                data,
-                phase3["start"],
-                phase3["end"],
-                "LOW"
-            )
-
-            n1_hist_low = get_histogram_extreme(
-                data,
-                phase1["start"],
-                phase1["end"],
-                "LOW"
-            )
-
-            p1_hist_high = get_histogram_extreme(
-                data,
-                phase2["start"],
-                phase2["end"],
-                "HIGH"
-            )
-
-            n2_hist_low = get_histogram_extreme(
-                data,
-                phase3["start"],
-                phase3["end"],
-                "LOW"
-            )
-
-            if any(
-                point is None
-                for point in [
-                    N1,
-                    P1,
-                    N2,
-                    n1_hist_low,
-                    p1_hist_high,
-                    n2_hist_low
-                ]
-            ):
-                continue
-
-            # Regular divergence in the negative phases.
-            # The histogram comparison covers the ENTIRE N2 phase.
-            if not (
-                N2["price"] < N1["price"]
-                and n2_hist_low["value"] > n1_hist_low["value"]
-            ):
-                continue
-
-            # Dynamic P2: only use data available up to the current
-            # closed candle. Never use the future end of phase 4.
-            P2 = get_extreme(
-                data,
-                phase4["start"],
-                last_closed_index,
-                "HIGH"
-            )
-
-            p2_hist_high = get_histogram_extreme(
-                data,
-                phase4["start"],
-                last_closed_index,
-                "HIGH"
-            )
-
-            if P2 is None or p2_hist_high is None:
-                continue
-
-            # Hidden divergence:
-            # price high P2 is lower than P1,
-            # histogram high P2 is higher than P1.
-            if not (
-                P2["price"] < P1["price"]
-                and p2_hist_high["value"] > p1_hist_high["value"]
-            ):
-                continue
-
-            direction = "SELL"
-
-            points = [
-                ("N1", N1),
-                ("P1", P1),
-                ("N2", N2),
-                ("P2", P2)
+        # Evaluate every closed candle in this phase, including historical phases.
+        for trigger_index in range(phase4["start"], min(phase4["end"], last_closed_index) + 1):
+            signs = [
+                phase1["sign"],
+                phase2["sign"],
+                phase3["sign"],
+                phase4["sign"]
             ]
 
-        # ----------------------------------------------------
-        # BUY: P1 -> N1 -> P2 -> N2
-        # ----------------------------------------------------
+            direction = None
+            points = []
 
-        elif signs == [1, -1, 1, -1]:
+            # ----------------------------------------------------
+            # SELL: N1 -> P1 -> N2 -> P2
+            # ----------------------------------------------------
 
-            P1 = get_extreme(
-                data,
-                phase1["start"],
-                phase1["end"],
-                "HIGH"
-            )
+            if signs == [-1, 1, -1, 1]:
 
-            N1 = get_extreme(
-                data,
-                phase2["start"],
-                phase2["end"],
-                "LOW"
-            )
+                N1 = get_extreme(
+                    data,
+                    phase1["start"],
+                    phase1["end"],
+                    "LOW"
+                )
 
-            P2 = get_extreme(
-                data,
-                phase3["start"],
-                phase3["end"],
-                "HIGH"
-            )
+                P1 = get_extreme(
+                    data,
+                    phase2["start"],
+                    phase2["end"],
+                    "HIGH"
+                )
 
-            p1_hist_high = get_histogram_extreme(
-                data,
-                phase1["start"],
-                phase1["end"],
-                "HIGH"
-            )
+                N2 = get_extreme(
+                    data,
+                    phase3["start"],
+                    phase3["end"],
+                    "LOW"
+                )
 
-            n1_hist_low = get_histogram_extreme(
-                data,
-                phase2["start"],
-                phase2["end"],
-                "LOW"
-            )
+                n1_hist_low = get_histogram_extreme(
+                    data,
+                    phase1["start"],
+                    phase1["end"],
+                    "LOW"
+                )
 
-            p2_hist_high = get_histogram_extreme(
-                data,
-                phase3["start"],
-                phase3["end"],
-                "HIGH"
-            )
+                p1_hist_high = get_histogram_extreme(
+                    data,
+                    phase2["start"],
+                    phase2["end"],
+                    "HIGH"
+                )
 
-            if any(
-                point is None
-                for point in [
-                    P1,
-                    N1,
-                    P2,
-                    p1_hist_high,
-                    n1_hist_low,
-                    p2_hist_high
+                n2_hist_low = get_histogram_extreme(
+                    data,
+                    phase3["start"],
+                    phase3["end"],
+                    "LOW"
+                )
+
+                if any(
+                    point is None
+                    for point in [
+                        N1,
+                        P1,
+                        N2,
+                        n1_hist_low,
+                        p1_hist_high,
+                        n2_hist_low
+                    ]
+                ):
+                    continue
+
+                # Regular divergence in the negative phases.
+                # The histogram comparison covers the ENTIRE N2 phase.
+                if not (
+                    N2["price"] < N1["price"]
+                    and n2_hist_low["value"] > n1_hist_low["value"]
+                ):
+                    continue
+
+                # Dynamic P2: only use data available up to the current
+                # closed candle. Never use the future end of phase 4.
+                P2 = get_extreme(
+                    data,
+                    phase4["start"],
+                    trigger_index,
+                    "HIGH"
+                )
+
+                p2_hist_high = get_histogram_extreme(
+                    data,
+                    phase4["start"],
+                    trigger_index,
+                    "HIGH"
+                )
+
+                if P2 is None or p2_hist_high is None:
+                    continue
+
+                # Hidden divergence:
+                # price high P2 is lower than P1,
+                # histogram high P2 is higher than P1.
+                if not (
+                    P2["price"] < P1["price"]
+                    and p2_hist_high["value"] > p1_hist_high["value"]
+                ):
+                    continue
+
+                direction = "SELL"
+
+                points = [
+                    ("N1", N1),
+                    ("P1", P1),
+                    ("N2", N2),
+                    ("P2", P2)
                 ]
-            ):
+
+            # ----------------------------------------------------
+            # BUY: P1 -> N1 -> P2 -> N2
+            # ----------------------------------------------------
+
+            elif signs == [1, -1, 1, -1]:
+
+                P1 = get_extreme(
+                    data,
+                    phase1["start"],
+                    phase1["end"],
+                    "HIGH"
+                )
+
+                N1 = get_extreme(
+                    data,
+                    phase2["start"],
+                    phase2["end"],
+                    "LOW"
+                )
+
+                P2 = get_extreme(
+                    data,
+                    phase3["start"],
+                    phase3["end"],
+                    "HIGH"
+                )
+
+                p1_hist_high = get_histogram_extreme(
+                    data,
+                    phase1["start"],
+                    phase1["end"],
+                    "HIGH"
+                )
+
+                n1_hist_low = get_histogram_extreme(
+                    data,
+                    phase2["start"],
+                    phase2["end"],
+                    "LOW"
+                )
+
+                p2_hist_high = get_histogram_extreme(
+                    data,
+                    phase3["start"],
+                    phase3["end"],
+                    "HIGH"
+                )
+
+                if any(
+                    point is None
+                    for point in [
+                        P1,
+                        N1,
+                        P2,
+                        p1_hist_high,
+                        n1_hist_low,
+                        p2_hist_high
+                    ]
+                ):
+                    continue
+
+                # Mirror of the SELL price/high-histogram conditions.
+                if not (
+                    P2["price"] > P1["price"]
+                    and p2_hist_high["value"] < p1_hist_high["value"]
+                ):
+                    continue
+
+                # Dynamic N2: only use candles up to the current closed bar.
+                N2 = get_extreme(
+                    data,
+                    phase4["start"],
+                    trigger_index,
+                    "LOW"
+                )
+
+                n2_hist_low = get_histogram_extreme(
+                    data,
+                    phase4["start"],
+                    trigger_index,
+                    "LOW"
+                )
+
+                if N2 is None or n2_hist_low is None:
+                    continue
+
+                # BUY is the mirror of SELL.
+                if not (
+                    N2["price"] > N1["price"]
+                    and n2_hist_low["value"] < n1_hist_low["value"]
+                ):
+                    continue
+
+                direction = "BUY"
+
+                points = [
+                    ("P1", P1),
+                    ("N1", N1),
+                    ("P2", P2),
+                    ("N2", N2)
+                ]
+
+            else:
                 continue
 
-            # Mirror of the SELL price/high-histogram conditions.
-            if not (
-                P2["price"] > P1["price"]
-                and p2_hist_high["value"] < p1_hist_high["value"]
-            ):
-                continue
-
-            # Dynamic N2: only use candles up to the current closed bar.
-            N2 = get_extreme(
-                data,
-                phase4["start"],
-                last_closed_index,
-                "LOW"
-            )
-
-            n2_hist_low = get_histogram_extreme(
-                data,
-                phase4["start"],
-                last_closed_index,
-                "LOW"
-            )
-
-            if N2 is None or n2_hist_low is None:
-                continue
-
-            # BUY is the mirror of SELL.
-            if not (
-                N2["price"] > N1["price"]
-                and n2_hist_low["value"] < n1_hist_low["value"]
-            ):
-                continue
-
-            direction = "BUY"
-
-            points = [
-                ("P1", P1),
-                ("N1", N1),
-                ("P2", P2),
-                ("N2", N2)
+            # The signal is triggered on the latest closed candle.
+            trigger_index = last_closed_index
+            trigger_time = data.loc[
+                trigger_index,
+                "Timestamp"
             ]
 
-        else:
-            continue
+            age = 0
 
-        # The signal is triggered on the latest closed candle.
-        trigger_index = last_closed_index
-        trigger_time = data.loc[
-            trigger_index,
-            "Timestamp"
-        ]
+            signal_id = make_signal_id(
+                symbol,
+                timeframe,
+                direction,
+                points,
+                trigger_time
+            )
 
-        age = 0
-
-        signal_id = make_signal_id(
-            symbol,
-            timeframe,
-            direction,
-            points,
-            trigger_time
-        )
-
-        found.append({
-            "id": signal_id,
-            "symbol": symbol,
-            "timeframe": timeframe,
-            "direction": direction,
-            "age": age,
-            "points": points,
-            "final_time": trigger_time,
-            "trigger_time": trigger_time
-        })
+            found.append({
+                "id": signal_id,
+                "symbol": symbol,
+                "timeframe": timeframe,
+                "direction": direction,
+                "age": age,
+                "points": points,
+                "final_time": trigger_time,
+                "trigger_time": trigger_time
+            })
 
     found.sort(
         key=lambda item: item["final_time"],
@@ -1034,10 +1031,7 @@ def main():
         f"{MACD_FAST},{MACD_SLOW},{MACD_SIGNAL}"
     )
 
-    print(
-        f"Maximum signal age: "
-        f"{MAX_SIGNAL_AGE} closed candles"
-    )
+    print("Signal age filter: disabled; scanning available history")
 
     print("Timeframes: D1, H4, H1, M15, M5")
     print("=" * 60)
@@ -1137,19 +1131,28 @@ def main():
             )
 
             for signal in signals:
-                if signal["id"] in sent_state:
-                    continue
-
                 discovered.append(signal)
 
                 print(
-                    "NEW:",
+                    "FOUND:",
                     signal["direction"],
                     symbol_name,
                     timeframe,
                     "age:",
                     signal["age"]
                 )
+
+    # Keep only the latest historical signal per symbol across all scanned timeframes.
+    latest_by_symbol = {}
+    for signal in discovered:
+        current = latest_by_symbol.get(signal["symbol"])
+        if current is None or signal["trigger_time"] > current["trigger_time"]:
+            latest_by_symbol[signal["symbol"]] = signal
+
+    discovered = [
+        signal for signal in latest_by_symbol.values()
+        if signal["id"] not in sent_state
+    ]
 
     if not discovered:
         print("\nNo new Level Criterion signals found.")
