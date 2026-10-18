@@ -18,7 +18,6 @@ MACD_FAST = 12
 MACD_SLOW = 26
 MACD_SIGNAL = 9
 
-MAX_SIGNAL_AGE = None
 MAX_STORED_SIGNALS = 500
 
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
@@ -909,14 +908,9 @@ def detect_level_criterion(df, symbol, timeframe):
             else:
                 continue
 
-            # The signal is triggered on the latest closed candle.
-            trigger_index = last_closed_index
-            trigger_time = data.loc[
-                trigger_index,
-                "Timestamp"
-            ]
-
-            age = 0
+            # Record the historical closed candle where criteria were met.
+            trigger_time = data.loc[trigger_index, "Timestamp"]
+            age = last_closed_index - trigger_index
 
             signal_id = make_signal_id(
                 symbol,
