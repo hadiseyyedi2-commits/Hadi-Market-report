@@ -3,7 +3,7 @@ name: Hadi Market Report
 on:
   workflow_dispatch:
   schedule:
-    - cron: '30 5 * * *'
+    - cron: '*/15 * * * *'
 
 permissions:
   contents: write
