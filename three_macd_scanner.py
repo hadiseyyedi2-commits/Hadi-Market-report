@@ -324,14 +324,24 @@ def scan_timeframe(df, symbol, timeframe):
     return results
 
 def format_signal(s):
+    # Convert UTC timestamps to Tehran local time (Iran Standard Time, UTC+03:30).
+    tehran_tz = "Asia/Tehran"
+    trigger_time = pd.Timestamp(s["time"])
+    range_time = pd.Timestamp(s["range_time"])
+    if trigger_time.tzinfo is None:
+        trigger_time = trigger_time.tz_localize("UTC")
+    if range_time.tzinfo is None:
+        range_time = range_time.tz_localize("UTC")
+    trigger_local = trigger_time.tz_convert(tehran_tz)
+    range_local = range_time.tz_convert(tehran_tz)
     return "\n".join([
         "★★ THREE MACD SCANNER ★★",
         f"{'🟢 BUY' if s['direction'] == 'BUY' else '🔻 SELL'} | {s['symbol']}",
         f"Timeframe: {s['timeframe']}",
-        f"Trigger time: {pd.Timestamp(s['time']).strftime('%Y-%m-%d %H:%M UTC')}",
+        f"Trigger time (Tehran): {trigger_local.strftime('%Y-%m-%d %H:%M')}",
         f"Trigger price: {s['price']:.6f}",
         f"{s['range_name']}: {s['range_price']:.6f}",
-        f"Range time: {pd.Timestamp(s['range_time']).strftime('%Y-%m-%d %H:%M UTC')}",
+        f"Range time (Tehran): {range_local.strftime('%Y-%m-%d %H:%M')}",
     ])
 
 def github_headers():
