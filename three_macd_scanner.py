@@ -145,11 +145,8 @@ def scan_direction(data, direction, symbol_name, timeframe):
     BUY:
       4X crosses above zero; build HIGH RANGE until its first bearish
       signal-line cross above zero (range excludes that cross candle).
-      Default MACD must actually cross below zero by the 4X bearish cross
-      or before the next 4X bullish signal-line cross.
-      After the 4X bullish cross, default MACD must actually cross back
-      above zero. Quarter MACD's downward zero-cross triggers only when
-      4X is above zero and its signal, and default MACD is above zero.
+      Default MACD is checked only at the quarter-MACD trigger: it must be above zero for BUY.
+      Quarter MACD's downward zero-cross triggers only when 4X is above zero and its signal, and default MACD is above zero. No default-MACD cross is required before the trigger.
       Any HIGH RANGE touch after the first 4X bearish cross invalidates.
 
     SELL is the exact mirror.
@@ -216,17 +213,10 @@ def scan_direction(data, direction, symbol_name, timeframe):
                 continue
 
             if state == 2:
-                if default_first_cross:
-                    default_crossed_first = True
-                # Required order: default MACD has crossed below zero, then
-                # 4X makes its bullish signal-line cross.
+                # Default MACD is intentionally NOT checked in intermediate
+                # stages. Its only BUY condition is d1 > 0 on the trigger candle.
                 if second_cross:
-                    if not default_crossed_first:
-                        state = 0
-                        range_price = range_time = None
-                        continue
                     state = 3
-                    default_crossed_back = default_return_cross
                 elif x1 <= 0:
                     state = 0
                     range_price = range_time = None
@@ -239,17 +229,7 @@ def scan_direction(data, direction, symbol_name, timeframe):
                     range_price = range_time = None
                     default_crossed_first = default_crossed_back = False
                     continue
-                if default_return_cross:
-                    default_crossed_back = True
-                # Once the default MACD has returned above zero, it must remain
-                # there through the quarter-MACD trigger.
-                if default_crossed_back and d1 <= 0:
-                    state = 0
-                    range_price = range_time = None
-                    default_crossed_first = default_crossed_back = False
-                    continue
-                if (default_crossed_first and default_crossed_back
-                        and x1 > xs1 and x1 > 0 and d1 > 0 and quarter_trigger):
+                if x1 > xs1 and x1 > 0 and d1 > 0 and quarter_trigger:
                     last_signal = {
                         "symbol": symbol_name, "timeframe": timeframe, "direction": "BUY",
                         "time": t, "price": float(c["Close"]),
@@ -295,15 +275,10 @@ def scan_direction(data, direction, symbol_name, timeframe):
                 continue
 
             if state == 2:
-                if default_first_cross:
-                    default_crossed_first = True
+                # Default MACD is intentionally NOT checked in intermediate
+                # stages. Its only SELL condition is d1 < 0 on the trigger candle.
                 if second_cross:
-                    if not default_crossed_first:
-                        state = 0
-                        range_price = range_time = None
-                        continue
                     state = 3
-                    default_crossed_back = default_return_cross
                 elif x1 >= 0:
                     state = 0
                     range_price = range_time = None
@@ -316,15 +291,7 @@ def scan_direction(data, direction, symbol_name, timeframe):
                     range_price = range_time = None
                     default_crossed_first = default_crossed_back = False
                     continue
-                if default_return_cross:
-                    default_crossed_back = True
-                if default_crossed_back and d1 >= 0:
-                    state = 0
-                    range_price = range_time = None
-                    default_crossed_first = default_crossed_back = False
-                    continue
-                if (default_crossed_first and default_crossed_back
-                        and x1 < xs1 and x1 < 0 and d1 < 0 and quarter_trigger):
+                if x1 < xs1 and x1 < 0 and d1 < 0 and quarter_trigger:
                     last_signal = {
                         "symbol": symbol_name, "timeframe": timeframe, "direction": "SELL",
                         "time": t, "price": float(c["Close"]),
