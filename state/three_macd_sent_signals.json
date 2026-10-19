@@ -2470,5 +2470,13 @@
     "trigger_time": "2026-10-19 05:35:00+00:00",
     "trigger_price": 0.8242300152778625,
     "sent_at": "2026-10-19T06:29:07.799206+00:00"
+  },
+  "6e6dac6ce5aff27b6c92b4939ab97eecb3b526c3c938150e3bfbaf71e15a760e": {
+    "symbol": "GBPNZD",
+    "timeframe": "M15",
+    "direction": "SELL",
+    "trigger_time": "2026-10-19 09:00:00+00:00",
+    "trigger_price": 2.3543200492858887,
+    "sent_at": "2026-10-19T13:47:00.176445+00:00"
   }
 }
