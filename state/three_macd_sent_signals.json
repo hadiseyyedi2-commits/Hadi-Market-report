@@ -2494,5 +2494,29 @@
     "trigger_time": "2026-10-19 14:30:00+00:00",
     "trigger_price": 0.5670220255851746,
     "sent_at": "2026-10-19T19:35:07.679167+00:00"
+  },
+  "7dd696b60d27d0525ff79c5eec1fbdf65ebfa7228e21ceb79d3c9819ad82a3e7": {
+    "symbol": "AUDNZD",
+    "timeframe": "M15",
+    "direction": "BUY",
+    "trigger_time": "2026-10-19 20:00:00+00:00",
+    "trigger_price": 1.2325899600982666,
+    "sent_at": "2026-10-19T23:05:54.777862+00:00"
+  },
+  "1f96786a4d6a1ae2f968fa11f5618394118ccd8d280f1af5afc64d7341de4ba4": {
+    "symbol": "EURGBP",
+    "timeframe": "M30",
+    "direction": "BUY",
+    "trigger_time": "2026-07-30 14:30:00+00:00",
+    "trigger_price": 0.8568199872970581,
+    "sent_at": "2026-10-19T23:05:54.777862+00:00"
+  },
+  "ca078bfb7ac2f429d1bd5c70e16def451e6238579c7fac69b175d94f5ce48df1": {
+    "symbol": "EURJPY",
+    "timeframe": "M30",
+    "direction": "BUY",
+    "trigger_time": "2026-10-19 20:30:00+00:00",
+    "trigger_price": 177.6999969482422,
+    "sent_at": "2026-10-19T23:05:54.777862+00:00"
   }
 }
