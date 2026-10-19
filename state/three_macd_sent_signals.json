@@ -2478,5 +2478,21 @@
     "trigger_time": "2026-10-19 09:00:00+00:00",
     "trigger_price": 2.3543200492858887,
     "sent_at": "2026-10-19T13:47:00.176445+00:00"
+  },
+  "cdd892ccb8823ba470535d765503fa70381a66fb1b4bb63d28ab510b2fac198b": {
+    "symbol": "GBPCHF",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "trigger_time": "2026-10-19 16:05:00+00:00",
+    "trigger_price": 1.099660038948059,
+    "sent_at": "2026-10-19T19:35:07.679167+00:00"
+  },
+  "1799a79da4aa8a65caf58345a7277451a667a54efb0142d12841d20924856e9b": {
+    "symbol": "NZDUSD",
+    "timeframe": "M30",
+    "direction": "BUY",
+    "trigger_time": "2026-10-19 14:30:00+00:00",
+    "trigger_price": 0.5670220255851746,
+    "sent_at": "2026-10-19T19:35:07.679167+00:00"
   }
 }
