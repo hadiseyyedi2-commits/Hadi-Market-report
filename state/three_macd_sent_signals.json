@@ -2430,5 +2430,21 @@
     "trigger_time": "2025-07-17 23:00:00+00:00",
     "trigger_price": 0.9325500130653381,
     "sent_at": "2026-10-18T23:31:35.298678+00:00"
+  },
+  "9344b08a0c946650d2f02b09160f5ea86a8dd3bb55222207cb5180f2c8a48649": {
+    "symbol": "NZDJPY",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "trigger_time": "2026-10-18 23:45:00+00:00",
+    "trigger_price": 89.23799896240234,
+    "sent_at": "2026-10-19T01:32:27.790753+00:00"
+  },
+  "de2bac450588bb12bc409ec9fd3691cf3fadb6e1b54aacd49c7516c14e88fa8a": {
+    "symbol": "USDCHF",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "trigger_time": "2026-10-19 00:20:00+00:00",
+    "trigger_price": 0.8241299986839294,
+    "sent_at": "2026-10-19T01:32:27.790753+00:00"
   }
 }
