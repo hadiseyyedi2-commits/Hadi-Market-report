@@ -2550,5 +2550,37 @@
     "trigger_time": "2026-10-20 10:00:00+00:00",
     "trigger_price": 1.3340270519256592,
     "sent_at": "2026-10-20T12:12:56.481090+00:00"
+  },
+  "25073f4243d1c4be8397711b205c6d080f893e54ebf647b0dc6866d6db6e2301": {
+    "symbol": "AUDCAD",
+    "timeframe": "M30",
+    "direction": "SELL",
+    "trigger_time": "2026-10-20 13:00:00+00:00",
+    "trigger_price": 0.9825400114059448,
+    "sent_at": "2026-10-20T17:01:47.434209+00:00"
+  },
+  "446f6923d2d8bb287a7ba3152fee1f265c79fa1ff217eb5a7764e1d45603d04a": {
+    "symbol": "EURCHF",
+    "timeframe": "M30",
+    "direction": "SELL",
+    "trigger_time": "2026-10-20 13:30:00+00:00",
+    "trigger_price": 0.9253600239753723,
+    "sent_at": "2026-10-20T17:01:47.434209+00:00"
+  },
+  "f6662b83ae347bd7373a59dca3f2b3ac0f86be14277dcce49cca2ec252a543c7": {
+    "symbol": "EURUSD",
+    "timeframe": "M30",
+    "direction": "BUY",
+    "trigger_time": "2026-10-20 16:00:00+00:00",
+    "trigger_price": 1.1233429908752441,
+    "sent_at": "2026-10-20T17:01:47.434209+00:00"
+  },
+  "16c54b640889e65137d8f3ec30b6635d31226a8548a99f585fd1a157dede220b": {
+    "symbol": "USDCHF",
+    "timeframe": "M30",
+    "direction": "SELL",
+    "trigger_time": "2026-10-20 14:00:00+00:00",
+    "trigger_price": 0.8245499730110168,
+    "sent_at": "2026-10-20T17:01:47.434209+00:00"
   }
 }
