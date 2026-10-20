@@ -1117,5 +1117,109 @@
     "sent_at": "2026-10-20T09:28:12.989562+00:00",
     "final_time": "2026-10-20 04:00:00+00:00",
     "trigger_time": "2026-10-20 04:00:00+00:00"
+  },
+  "432338ab1b8f3f48377f5406b85f82e9db0b25be8c8e503f471a1b14aed40133": {
+    "symbol": "GBPAUD",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-10-20T14:29:04.967488+00:00",
+    "final_time": "2026-10-20 14:00:00+00:00",
+    "trigger_time": "2026-10-20 14:00:00+00:00"
+  },
+  "5fdec263768314be9e36549018252bb205f71d77560b9bafa5b536c3da6b4839": {
+    "symbol": "AUDCAD",
+    "timeframe": "M15",
+    "direction": "SELL",
+    "sent_at": "2026-10-20T14:29:04.967488+00:00",
+    "final_time": "2026-10-20 14:00:00+00:00",
+    "trigger_time": "2026-10-20 14:00:00+00:00"
+  },
+  "61fccdfdc6a83fec6adf101f3a6379c41da61236d566ec3f1f563eb2dc791529": {
+    "symbol": "EURCHF",
+    "timeframe": "M15",
+    "direction": "SELL",
+    "sent_at": "2026-10-20T14:29:04.967488+00:00",
+    "final_time": "2026-10-20 13:45:00+00:00",
+    "trigger_time": "2026-10-20 13:45:00+00:00"
+  },
+  "329e2d03a9505c5bfd7626d0493f2977c3c203454af84be9e516d6e77d9005e4": {
+    "symbol": "NZDJPY",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-10-20T14:29:04.967488+00:00",
+    "final_time": "2026-10-20 13:10:00+00:00",
+    "trigger_time": "2026-10-20 13:10:00+00:00"
+  },
+  "83c10f8aaf2fed291a3711191527a5b9b07f5515c1e2af7493b75f0f89253ee2": {
+    "symbol": "GBPNZD",
+    "timeframe": "H1",
+    "direction": "SELL",
+    "sent_at": "2026-10-20T14:29:04.967488+00:00",
+    "final_time": "2026-10-20 13:00:00+00:00",
+    "trigger_time": "2026-10-20 13:00:00+00:00"
+  },
+  "b16984e0d2233ba03cc26b28a16e7934b53e2c6512e91f1820768e3e0f31e005": {
+    "symbol": "EURGBP",
+    "timeframe": "M15",
+    "direction": "SELL",
+    "sent_at": "2026-10-20T14:29:04.967488+00:00",
+    "final_time": "2026-10-20 12:00:00+00:00",
+    "trigger_time": "2026-10-20 12:00:00+00:00"
+  },
+  "a8929a401b40d34b6880e8630bbb8e1f52abb0da6b3116ed5e7580a7003e1bab": {
+    "symbol": "GBPCAD",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-10-20T14:29:04.967488+00:00",
+    "final_time": "2026-10-20 11:50:00+00:00",
+    "trigger_time": "2026-10-20 11:50:00+00:00"
+  },
+  "1cdd2496b549dbeb06b3b591d88b0cdb09f25080fd24418ca6d3fa504469ac21": {
+    "symbol": "EURNZD",
+    "timeframe": "M15",
+    "direction": "SELL",
+    "sent_at": "2026-10-20T14:29:04.967488+00:00",
+    "final_time": "2026-10-20 11:45:00+00:00",
+    "trigger_time": "2026-10-20 11:45:00+00:00"
+  },
+  "22a867a03ae78f4d03877568241edc52d0a37b7e689f503d47186fcb872a2290": {
+    "symbol": "USDCAD",
+    "timeframe": "M15",
+    "direction": "SELL",
+    "sent_at": "2026-10-20T14:29:04.967488+00:00",
+    "final_time": "2026-10-20 11:30:00+00:00",
+    "trigger_time": "2026-10-20 11:30:00+00:00"
+  },
+  "9c8d728fa2a4e439209d0d710a199ee3c5bc1f272100190a448e96641cab0262": {
+    "symbol": "AUDUSD",
+    "timeframe": "M15",
+    "direction": "BUY",
+    "sent_at": "2026-10-20T14:29:04.967488+00:00",
+    "final_time": "2026-10-20 10:45:00+00:00",
+    "trigger_time": "2026-10-20 10:45:00+00:00"
+  },
+  "e9372cfa27d6262e88fbfa46fcdc4817ac2bd3141c1a85220a22ebfe910b29c5": {
+    "symbol": "GBPCHF",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-10-20T14:29:04.967488+00:00",
+    "final_time": "2026-10-20 10:05:00+00:00",
+    "trigger_time": "2026-10-20 10:05:00+00:00"
+  },
+  "b5e23d3fafe0aee152e2d7e3f069f39eee233facb6228c0c7285679a0e1a7562": {
+    "symbol": "EURAUD",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-10-20T14:29:04.967488+00:00",
+    "final_time": "2026-10-20 09:30:00+00:00",
+    "trigger_time": "2026-10-20 09:30:00+00:00"
+  },
+  "65d8d975b720159fc4b669f81a2ddb6221b54ab3e08203f4f0e72d08955df70d": {
+    "symbol": "AUDJPY",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-10-20T14:29:04.967488+00:00",
+    "final_time": "2026-10-20 08:55:00+00:00",
+    "trigger_time": "2026-10-20 08:55:00+00:00"
   }
 }
