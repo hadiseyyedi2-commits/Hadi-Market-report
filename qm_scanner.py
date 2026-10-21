@@ -24,7 +24,7 @@ SYMBOLS = [
     "USDJPY", "USDCAD", "USDCHF", "CHFJPY",
 ]
 
-TIMEFRAMES = ["M15", "H1", "H4", "D1"]
+TIMEFRAMES = ["M1", "M5", "M15", "H1", "H4", "D1"]
 
 MACD_FAST   = 12
 MACD_SLOW   = 26
@@ -62,6 +62,8 @@ SYMBOL_MAP = {
 }
 
 TF_CONFIG = {
+    "M1":  ("1m",  "7d"),
+    "M5":  ("5m",  "60d"),
     "M15": ("15m", "60d"),
     "M30": ("30m", "60d"),
     "H1":  ("60m", "730d"),
