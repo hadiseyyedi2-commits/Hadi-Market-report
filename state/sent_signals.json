@@ -1533,5 +1533,101 @@
     "sent_at": "2026-10-21T10:16:26.290717+00:00",
     "final_time": "2026-10-21 06:30:00+00:00",
     "trigger_time": "2026-10-21 06:30:00+00:00"
+  },
+  "9dfaaa10f9d2243540f82392998b5296a7d58eebc289bffaa7795ac9631345ce": {
+    "symbol": "NZDJPY",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-10-21T15:23:19.661155+00:00",
+    "final_time": "2026-10-21 15:15:00+00:00",
+    "trigger_time": "2026-10-21 15:15:00+00:00"
+  },
+  "287fa48388ae149c6db5c23287272d0940b53628e8fa1e8e380ec84e61c29fc7": {
+    "symbol": "GBPCAD",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-10-21T15:23:19.661155+00:00",
+    "final_time": "2026-10-21 14:40:00+00:00",
+    "trigger_time": "2026-10-21 14:40:00+00:00"
+  },
+  "df35d3542eca365324bc63a3dc98ca20abb50d9bca9ef24bfb186d2afb378587": {
+    "symbol": "EURGBP",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-10-21T15:23:19.661155+00:00",
+    "final_time": "2026-10-21 14:30:00+00:00",
+    "trigger_time": "2026-10-21 14:30:00+00:00"
+  },
+  "6ad90a159011060fa9cf6e6607d53bdb16f541212aae09fa00835effc90ed1f3": {
+    "symbol": "AUDCAD",
+    "timeframe": "M15",
+    "direction": "BUY",
+    "sent_at": "2026-10-21T15:23:19.661155+00:00",
+    "final_time": "2026-10-21 14:30:00+00:00",
+    "trigger_time": "2026-10-21 14:30:00+00:00"
+  },
+  "011571b7edff5eace0226935b12e530aa30da4dbe535daf3c1d4083db1da8741": {
+    "symbol": "NZDUSD",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-10-21T15:23:19.661155+00:00",
+    "final_time": "2026-10-21 13:30:00+00:00",
+    "trigger_time": "2026-10-21 13:30:00+00:00"
+  },
+  "3cc77d62681ba0a6b74d53a68e649a949068a96c06cea7acd8b26dc01651f8f7": {
+    "symbol": "EURAUD",
+    "timeframe": "M15",
+    "direction": "SELL",
+    "sent_at": "2026-10-21T15:23:19.661155+00:00",
+    "final_time": "2026-10-21 13:30:00+00:00",
+    "trigger_time": "2026-10-21 13:30:00+00:00"
+  },
+  "07c1a24f273ef14df8ba6fa77df26178507af00a448fe5dc7e4ceff22cbea390": {
+    "symbol": "GBPUSD",
+    "timeframe": "M15",
+    "direction": "BUY",
+    "sent_at": "2026-10-21T15:23:19.661155+00:00",
+    "final_time": "2026-10-21 13:15:00+00:00",
+    "trigger_time": "2026-10-21 13:15:00+00:00"
+  },
+  "0aa48b91433393a3fbcb98beba1861a486f3ce921527976f336cdd85ae8b7942": {
+    "symbol": "AUDUSD",
+    "timeframe": "M15",
+    "direction": "BUY",
+    "sent_at": "2026-10-21T15:23:19.661155+00:00",
+    "final_time": "2026-10-21 13:00:00+00:00",
+    "trigger_time": "2026-10-21 13:00:00+00:00"
+  },
+  "dde4ac660ab770d8b787df78870cc22f759ff7dc9fd039664514f087d843e5b7": {
+    "symbol": "GBPJPY",
+    "timeframe": "H1",
+    "direction": "BUY",
+    "sent_at": "2026-10-21T15:23:19.661155+00:00",
+    "final_time": "2026-10-21 13:00:00+00:00",
+    "trigger_time": "2026-10-21 13:00:00+00:00"
+  },
+  "8e575b0943ac5b880969923fb11ed274400ac0ed8f2c0c99f9fb90e4fed16a9b": {
+    "symbol": "EURUSD",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-10-21T15:23:19.661155+00:00",
+    "final_time": "2026-10-21 12:25:00+00:00",
+    "trigger_time": "2026-10-21 12:25:00+00:00"
+  },
+  "faa3e09e84b3cfdd80c5d892946016395b71351b85c11c16b5ae6a271f18d306": {
+    "symbol": "AUDJPY",
+    "timeframe": "M15",
+    "direction": "BUY",
+    "sent_at": "2026-10-21T15:23:19.661155+00:00",
+    "final_time": "2026-10-21 11:15:00+00:00",
+    "trigger_time": "2026-10-21 11:15:00+00:00"
+  },
+  "5be33b93586a15ae23c2ec48210436c2367ebf254d1d2ec33ea4c71ce5007395": {
+    "symbol": "GBPAUD",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-10-21T15:23:19.661155+00:00",
+    "final_time": "2026-10-21 10:30:00+00:00",
+    "trigger_time": "2026-10-21 10:30:00+00:00"
   }
 }
