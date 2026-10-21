@@ -2734,5 +2734,29 @@
     "trigger_time": "2026-10-21 20:30:00+00:00",
     "trigger_price": 0.8243499994277954,
     "sent_at": "2026-10-21T20:46:44.759908+00:00"
+  },
+  "74367db3e453d931de45917e3a388826a82b2923e539caa326763a13bd88b211": {
+    "symbol": "GBPAUD",
+    "timeframe": "H4",
+    "direction": "BUY",
+    "trigger_time": "2024-03-20 16:00:00+00:00",
+    "trigger_price": 1.9409300088882446,
+    "sent_at": "2026-10-21T23:41:19.053146+00:00"
+  },
+  "045ff4a950e6bae03a464d828c3813a9bd7f625740991e180c80e596c1d8795d": {
+    "symbol": "GBPNZD",
+    "timeframe": "D1",
+    "direction": "BUY",
+    "trigger_time": "2025-02-17 00:00:00+00:00",
+    "trigger_price": 2.1949000358581543,
+    "sent_at": "2026-10-21T23:41:19.053146+00:00"
+  },
+  "d4e31cad3ab306751ad2ca1a8e858f8cb05e5fc8f7e3feb1f9488d27ecedbb4f": {
+    "symbol": "USDCAD",
+    "timeframe": "M30",
+    "direction": "BUY",
+    "trigger_time": "2026-08-03 05:30:00+00:00",
+    "trigger_price": 1.402500033378601,
+    "sent_at": "2026-10-21T23:41:19.053146+00:00"
   }
 }
