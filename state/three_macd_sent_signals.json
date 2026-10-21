@@ -2614,5 +2614,61 @@
     "trigger_time": "2026-10-20 23:00:00+00:00",
     "trigger_price": 1.12296462059021,
     "sent_at": "2026-10-21T01:36:33.925489+00:00"
+  },
+  "a1c331345476b710804ec787fe5abb2c176ea41149c8085301027c7f4db6683d": {
+    "symbol": "EURAUD",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "trigger_time": "2026-10-20 21:10:00+00:00",
+    "trigger_price": 1.6044800281524658,
+    "sent_at": "2026-10-21T06:38:46.990747+00:00"
+  },
+  "41a063495988be87ee21b50a9cd35026e11d2d35d7f6a5a53dd2fe3c3d9b997f": {
+    "symbol": "EURCHF",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "trigger_time": "2026-10-21 00:50:00+00:00",
+    "trigger_price": 0.9271799921989441,
+    "sent_at": "2026-10-21T06:38:46.990747+00:00"
+  },
+  "15ca7a0406fb449188d71eb4a64899fa23d900a592938fc17d700a35f37a5639": {
+    "symbol": "EURJPY",
+    "timeframe": "H1",
+    "direction": "BUY",
+    "trigger_time": "2026-10-21 02:00:00+00:00",
+    "trigger_price": 177.66700744628906,
+    "sent_at": "2026-10-21T06:38:46.990747+00:00"
+  },
+  "e1902164094dda8a044a1d2e446d721e74c8afe0d14a67335b670386fee6349b": {
+    "symbol": "EURUSD",
+    "timeframe": "H1",
+    "direction": "BUY",
+    "trigger_time": "2026-10-20 22:00:00+00:00",
+    "trigger_price": 1.1230907440185547,
+    "sent_at": "2026-10-21T06:38:46.990747+00:00"
+  },
+  "62dfb767343abfd333cbc0704b75cd149330f59d313bc769315e4efe2acef9e3": {
+    "symbol": "GBPCHF",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "trigger_time": "2026-10-21 00:45:00+00:00",
+    "trigger_price": 1.1044800281524658,
+    "sent_at": "2026-10-21T06:38:46.990747+00:00"
+  },
+  "1105202ab50893f044c1aaa819a50c312da08f15c0f3393856937564fc126df1": {
+    "symbol": "GBPNZD",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "trigger_time": "2026-10-20 23:30:00+00:00",
+    "trigger_price": 2.3546900749206543,
+    "sent_at": "2026-10-21T06:38:46.990747+00:00"
+  },
+  "077b7ee011519ea6056a8f7d9759804c2169161663c1aeb7d0a096a4e2716e41": {
+    "symbol": "NZDJPY",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "trigger_time": "2026-10-21 01:05:00+00:00",
+    "trigger_price": 89.83599853515625,
+    "sent_at": "2026-10-21T06:38:46.990747+00:00"
   }
 }
