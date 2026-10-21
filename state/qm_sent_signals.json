@@ -1,4 +1,6 @@
 {
-  "alerted": [],
-  "initialized": false
+  "alerted": [
+    "QM|AUDCAD|D1|1775606400|BUY"
+  ],
+  "initialized": true
 }
