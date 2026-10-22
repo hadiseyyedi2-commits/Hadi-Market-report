@@ -2790,5 +2790,37 @@
     "trigger_time": "2026-10-22 00:50:00+00:00",
     "trigger_price": 158.1840057373047,
     "sent_at": "2026-10-22T01:54:46.010088+00:00"
+  },
+  "f0a547cb0baa01532ba1baab677288dd89b8f5eca9e75f7700004ed3de9c9460": {
+    "symbol": "EURAUD",
+    "timeframe": "H4",
+    "direction": "SELL",
+    "trigger_time": "2026-10-22 00:00:00+00:00",
+    "trigger_price": 1.603309988975525,
+    "sent_at": "2026-10-22T06:44:56.017543+00:00"
+  },
+  "7eb260eb44b3577fe26dedd77dba8c45376ebce22e76702b121004651e80673d": {
+    "symbol": "EURCAD",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "trigger_time": "2026-10-22 02:00:00+00:00",
+    "trigger_price": 1.5771000385284424,
+    "sent_at": "2026-10-22T06:44:56.017543+00:00"
+  },
+  "cc25d0b6eb363761712e714d7e3ed3ff93effc1d5f85c7a742b41143aace8d12": {
+    "symbol": "EURCHF",
+    "timeframe": "M15",
+    "direction": "SELL",
+    "trigger_time": "2026-10-22 04:45:00+00:00",
+    "trigger_price": 0.9252200126647949,
+    "sent_at": "2026-10-22T06:44:56.017543+00:00"
+  },
+  "51be74b46737feb12daca1286bcbedd616c7e332dc7ff8c44046919ab4c2a119": {
+    "symbol": "GBPCAD",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "trigger_time": "2026-10-22 02:55:00+00:00",
+    "trigger_price": 1.8799400329589844,
+    "sent_at": "2026-10-22T06:44:56.017543+00:00"
   }
 }
