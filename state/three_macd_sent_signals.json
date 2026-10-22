@@ -2822,5 +2822,13 @@
     "trigger_time": "2026-10-22 02:55:00+00:00",
     "trigger_price": 1.8799400329589844,
     "sent_at": "2026-10-22T06:44:56.017543+00:00"
+  },
+  "6147e7bb676a8d57ab4d09499cfe143cf90a757cb39b3c476e62eed671f8630a": {
+    "symbol": "NZDUSD",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "trigger_time": "2026-10-22 09:05:00+00:00",
+    "trigger_price": 0.5692167282104492,
+    "sent_at": "2026-10-22T12:28:36.449538+00:00"
   }
 }
