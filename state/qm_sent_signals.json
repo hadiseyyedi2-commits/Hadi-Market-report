@@ -1,7 +1,9 @@
 {
   "alerted": [
     "QM|AUDCAD|D1|1775606400|BUY",
-    "QM|CHFJPY|M5|1792492800|BUY"
+    "QM|CHFJPY|M5|1792492800|BUY",
+    "QM|XAGUSD|M15|1792503900|BUY",
+    "QM|CHFJPY|M15|1792493100|BUY"
   ],
   "initialized": true
 }
