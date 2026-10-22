@@ -2830,5 +2830,13 @@
     "trigger_time": "2026-10-22 09:05:00+00:00",
     "trigger_price": 0.5692167282104492,
     "sent_at": "2026-10-22T12:28:36.449538+00:00"
+  },
+  "0baecb57775b684ab09f47d63faec8ebc07f5d1c12180d457fd2df5e0768af8d": {
+    "symbol": "GBPCAD",
+    "timeframe": "H1",
+    "direction": "SELL",
+    "trigger_time": "2026-10-22 16:00:00+00:00",
+    "trigger_price": 1.8775800466537476,
+    "sent_at": "2026-10-22T17:25:06.575705+00:00"
   }
 }
