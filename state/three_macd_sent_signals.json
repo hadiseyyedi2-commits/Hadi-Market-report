@@ -2902,5 +2902,77 @@
     "trigger_time": "2025-01-23 00:00:00+00:00",
     "trigger_price": 192.6199951171875,
     "sent_at": "2026-10-22T23:38:42.847063+00:00"
+  },
+  "bf5da42a3c37215730f43a2a50ee0571ee1cd09c5ad5fbc5061e73ec17a503d9": {
+    "symbol": "AUDUSD",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "trigger_time": "2026-10-23 01:50:00+00:00",
+    "trigger_price": 0.7020007371902466,
+    "sent_at": "2026-10-23T01:57:26.704067+00:00"
+  },
+  "a2880e6becc2fa76a8bd009be76094a5e30c8af0970c48459d228896f5bfff3b": {
+    "symbol": "EURAUD",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "trigger_time": "2026-10-22 21:00:00+00:00",
+    "trigger_price": 1.5977200269699097,
+    "sent_at": "2026-10-23T01:57:26.704067+00:00"
+  },
+  "bf7f1d55d30246033437ed2321537f5cf2d7200d4ff49488568b754b469d252d": {
+    "symbol": "EURJPY",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "trigger_time": "2026-10-22 21:20:00+00:00",
+    "trigger_price": 175.8209991455078,
+    "sent_at": "2026-10-23T01:57:26.704067+00:00"
+  },
+  "c4577a68e944efd9180919ca8c8cfd4409dca658fa964e325e132620ee5e0b19": {
+    "symbol": "GBPAUD",
+    "timeframe": "M15",
+    "direction": "BUY",
+    "trigger_time": "2026-10-23 00:45:00+00:00",
+    "trigger_price": 1.909209966659546,
+    "sent_at": "2026-10-23T01:57:26.704067+00:00"
+  },
+  "a828a93f5fc955d702a40c4b578a8caf94f26d6c8c1171f7b0105606d31d89df": {
+    "symbol": "GBPCAD",
+    "timeframe": "M15",
+    "direction": "SELL",
+    "trigger_time": "2026-10-22 22:00:00+00:00",
+    "trigger_price": 1.8764499425888062,
+    "sent_at": "2026-10-23T01:57:26.704067+00:00"
+  },
+  "9bf5ab252946ae0933d2902525a6682036c1f623f11f1aab3b9c52522745b115": {
+    "symbol": "GBPCHF",
+    "timeframe": "M15",
+    "direction": "SELL",
+    "trigger_time": "2026-10-22 22:15:00+00:00",
+    "trigger_price": 1.0991899967193604,
+    "sent_at": "2026-10-23T01:57:26.704067+00:00"
+  },
+  "fe92f357ef0ec79c6a57e269ed7a37aa5bb4f4bd259bbb02376e171184d6f079": {
+    "symbol": "GBPJPY",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "trigger_time": "2026-10-22 21:40:00+00:00",
+    "trigger_price": 210.00900268554688,
+    "sent_at": "2026-10-23T01:57:26.704067+00:00"
+  },
+  "afc551eef76ff1c6e1fb82aec7c04776796975c3e7f21aefeb862a7ff0e0ffb9": {
+    "symbol": "GBPUSD",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "trigger_time": "2026-10-22 22:55:00+00:00",
+    "trigger_price": 1.3401411771774292,
+    "sent_at": "2026-10-23T01:57:26.704067+00:00"
+  },
+  "71555e5e8ff3ecfdca476de2c96a0cc63bfea0ae9edf62a9f86727ac44f3d22f": {
+    "symbol": "NZDUSD",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "trigger_time": "2026-10-22 22:55:00+00:00",
+    "trigger_price": 0.5685048699378967,
+    "sent_at": "2026-10-23T01:57:26.704067+00:00"
   }
 }
