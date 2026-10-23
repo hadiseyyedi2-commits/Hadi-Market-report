@@ -2501,5 +2501,61 @@
     "sent_at": "2026-10-23T17:29:38.159081+00:00",
     "final_time": "2026-10-23 13:05:00+00:00",
     "trigger_time": "2026-10-23 13:05:00+00:00"
+  },
+  "e7a45cd848601106ac1eb0d344cc3c7bc8b3617604ed8f4276374b01885bbb13": {
+    "symbol": "GBPAUD",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-10-23T20:38:26.427208+00:00",
+    "final_time": "2026-10-23 20:05:00+00:00",
+    "trigger_time": "2026-10-23 20:05:00+00:00"
+  },
+  "6885015c7e07f6c875619ae66b2dfa31cc3e899cf9eff5cb869e08a83d6e50c4": {
+    "symbol": "GBPCHF",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-10-23T20:38:26.427208+00:00",
+    "final_time": "2026-10-23 19:45:00+00:00",
+    "trigger_time": "2026-10-23 19:45:00+00:00"
+  },
+  "f2ddb5abf428426e8427de1dbc4154ca7fe546b1275ee1e0f75a7fbf7d5f1de7": {
+    "symbol": "EURAUD",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-10-23T20:38:26.427208+00:00",
+    "final_time": "2026-10-23 19:35:00+00:00",
+    "trigger_time": "2026-10-23 19:35:00+00:00"
+  },
+  "e550e67576fa5a94bd4cd4e555caebe3ea9111b44583e7f859797dec63a6c000": {
+    "symbol": "USDCHF",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-10-23T20:38:26.427208+00:00",
+    "final_time": "2026-10-23 18:35:00+00:00",
+    "trigger_time": "2026-10-23 18:35:00+00:00"
+  },
+  "34de9d191064b25982311e6e9d25377ad300afd0d532f93ef908af4101a35f98": {
+    "symbol": "EURGBP",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-10-23T20:38:26.427208+00:00",
+    "final_time": "2026-10-23 18:10:00+00:00",
+    "trigger_time": "2026-10-23 18:10:00+00:00"
+  },
+  "6c5f1efb5b3dd34e3f7b9ae4974d9ccafd796860ba8068edece390d62737ebed": {
+    "symbol": "GBPUSD",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-10-23T20:38:26.427208+00:00",
+    "final_time": "2026-10-23 17:45:00+00:00",
+    "trigger_time": "2026-10-23 17:45:00+00:00"
+  },
+  "b5b4e04473451d74accea081d43c744ab0c7af8788f1cf1e48480b1155c9ef64": {
+    "symbol": "EURCAD",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-10-23T20:38:26.427208+00:00",
+    "final_time": "2026-10-23 17:45:00+00:00",
+    "trigger_time": "2026-10-23 17:45:00+00:00"
   }
 }
