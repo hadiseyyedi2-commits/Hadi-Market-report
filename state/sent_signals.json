@@ -1,4 +1,12 @@
 {
+  "c44fbc1cfa12f76e8638db0e37fe3fac98740d028873fcfbdef112b5b714c045": {
+    "symbol": "AUDNZD",
+    "timeframe": "M15",
+    "direction": "SELL",
+    "sent_at": "2026-10-30T00:48:33.878037+00:00",
+    "final_time": "2026-10-30 00:30:00+00:00",
+    "trigger_time": "2026-10-30 00:30:00+00:00"
+  },
   "c0593ad05dbea21cb7ba18e161018d89e7cc84ff9b31e7f3c4069a7c3115510f": {
     "symbol": "EURJPY",
     "timeframe": "M5",
@@ -3990,13 +3998,5 @@
     "sent_at": "2026-10-18T08:32:30.510440+00:00",
     "final_time": "2026-10-16 20:35:00+00:00",
     "trigger_time": "2026-10-16 20:35:00+00:00"
-  },
-  "abe62a812466b86de0b4448a3e6f6a9c0464cf9c6a10d2ee197d229ed1fc12ef": {
-    "symbol": "AUDNZD",
-    "timeframe": "M15",
-    "direction": "BUY",
-    "sent_at": "2026-10-18T08:32:30.510440+00:00",
-    "final_time": "2026-10-16 20:30:00+00:00",
-    "trigger_time": "2026-10-16 20:30:00+00:00"
   }
 }
