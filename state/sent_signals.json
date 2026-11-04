@@ -1,4 +1,28 @@
 {
+  "62d1c802efd126a1e67970f266dd0f65de758b806b4fffd5fad4a8985a06453f": {
+    "symbol": "EURNZD",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-11-04T02:45:58.360315+00:00",
+    "final_time": "2026-11-04 00:50:00+00:00",
+    "trigger_time": "2026-11-04 00:50:00+00:00"
+  },
+  "536835f2d097a67c110680b272c30c10d617455b4bc45a449e5322840d945d56": {
+    "symbol": "GBPNZD",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-11-04T02:45:58.360315+00:00",
+    "final_time": "2026-11-04 00:50:00+00:00",
+    "trigger_time": "2026-11-04 00:50:00+00:00"
+  },
+  "2cb53a8857cde92991791280963796be08b2f04eda883ae53c5f768677582af1": {
+    "symbol": "EURGBP",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-11-04T02:45:58.360315+00:00",
+    "final_time": "2026-11-03 23:00:00+00:00",
+    "trigger_time": "2026-11-03 23:00:00+00:00"
+  },
   "6c0c613ce90ed6a7f02068c44913cb3f6e499e687e6d69baf0c967fc2740ec7a": {
     "symbol": "AUDUSD",
     "timeframe": "M5",
@@ -3974,29 +3998,5 @@
     "sent_at": "2026-10-21T10:16:26.290717+00:00",
     "final_time": "2026-10-21 08:35:00+00:00",
     "trigger_time": "2026-10-21 08:35:00+00:00"
-  },
-  "03056815c230c78622b678f23e075e7fd6959a694dbb5750f04b1d710b0c2758": {
-    "symbol": "GBPCHF",
-    "timeframe": "M15",
-    "direction": "SELL",
-    "sent_at": "2026-10-21T10:16:26.290717+00:00",
-    "final_time": "2026-10-21 08:15:00+00:00",
-    "trigger_time": "2026-10-21 08:15:00+00:00"
-  },
-  "c595ecdb1d0ee2c33cb6648f801d07887572adeb6ff6a6972a3fd3cd4f461ca9": {
-    "symbol": "EURJPY",
-    "timeframe": "M15",
-    "direction": "SELL",
-    "sent_at": "2026-10-21T10:16:26.290717+00:00",
-    "final_time": "2026-10-21 07:45:00+00:00",
-    "trigger_time": "2026-10-21 07:45:00+00:00"
-  },
-  "ca42e2a794bdf5502f806d8aa67087669f0a4083553a91efe64fc8618de4730a": {
-    "symbol": "GBPNZD",
-    "timeframe": "M15",
-    "direction": "BUY",
-    "sent_at": "2026-10-21T10:16:26.290717+00:00",
-    "final_time": "2026-10-21 06:30:00+00:00",
-    "trigger_time": "2026-10-21 06:30:00+00:00"
   }
 }
