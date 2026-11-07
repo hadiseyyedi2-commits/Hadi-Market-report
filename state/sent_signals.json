@@ -1,4 +1,28 @@
 {
+  "df45552129bddbd75d31dc9dc3bab0fb2c01456bda6f9027fe11e354137bc195": {
+    "symbol": "GBPUSD",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-11-07T00:43:17.947963+00:00",
+    "final_time": "2026-11-06 21:55:00+00:00",
+    "trigger_time": "2026-11-06 21:55:00+00:00"
+  },
+  "0a92ce495da37aa9900ca9a0c4ba1be48349030bfbf1472182ee2e383a4f71c0": {
+    "symbol": "GBPNZD",
+    "timeframe": "H1",
+    "direction": "BUY",
+    "sent_at": "2026-11-07T00:43:17.947963+00:00",
+    "final_time": "2026-11-06 21:00:00+00:00",
+    "trigger_time": "2026-11-06 21:00:00+00:00"
+  },
+  "0451eb3c7d0e7260d9aa93e37ceaaee478c28d90fe91a1bcbd6c42f4b14de4e7": {
+    "symbol": "GBPCHF",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-11-07T00:43:17.947963+00:00",
+    "final_time": "2026-11-06 20:55:00+00:00",
+    "trigger_time": "2026-11-06 20:55:00+00:00"
+  },
   "89cd6e6eab11b499a9d25283c8e6360d32a18e787212be3848eb5a9e42ee2c86": {
     "symbol": "AUDNZD",
     "timeframe": "M5",
@@ -3974,29 +3998,5 @@
     "sent_at": "2026-10-23T23:34:07.672560+00:00",
     "final_time": "2026-10-23 20:45:00+00:00",
     "trigger_time": "2026-10-23 20:45:00+00:00"
-  },
-  "edc03119697821d124ad67a5155d969aa259b9b91c730309d02e93e0d67f35b1": {
-    "symbol": "EURGBP",
-    "timeframe": "M5",
-    "direction": "SELL",
-    "sent_at": "2026-10-23T23:34:07.672560+00:00",
-    "final_time": "2026-10-23 20:35:00+00:00",
-    "trigger_time": "2026-10-23 20:35:00+00:00"
-  },
-  "10842bd66cece1e0f882c36e5f41bdddc689a75ba3df61f515e8a447a5c2c2f8": {
-    "symbol": "EURAUD",
-    "timeframe": "M15",
-    "direction": "SELL",
-    "sent_at": "2026-10-23T23:34:07.672560+00:00",
-    "final_time": "2026-10-23 20:30:00+00:00",
-    "trigger_time": "2026-10-23 20:30:00+00:00"
-  },
-  "994bece55d6d61ed24d6d41dd14e0d80ad88b559d7fd9b8c38e4aa1dd077ade8": {
-    "symbol": "EURCAD",
-    "timeframe": "H1",
-    "direction": "SELL",
-    "sent_at": "2026-10-23T23:34:07.672560+00:00",
-    "final_time": "2026-10-23 20:00:00+00:00",
-    "trigger_time": "2026-10-23 20:00:00+00:00"
   }
 }
