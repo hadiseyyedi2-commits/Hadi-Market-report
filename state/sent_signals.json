@@ -1,4 +1,108 @@
 {
+  "07adea8c26a43a595e4a3280953bde0349ed242003dc67854d8ba1080cf53463": {
+    "symbol": "GBPUSD",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-11-13T18:41:49.675498+00:00",
+    "final_time": "2026-11-13 18:15:00+00:00",
+    "trigger_time": "2026-11-13 18:15:00+00:00"
+  },
+  "8ec8352ad9b7fa87366407fce23c4508108bd02095495f7c9a6ba0aabe262cb3": {
+    "symbol": "GBPJPY",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-11-13T18:41:49.675498+00:00",
+    "final_time": "2026-11-13 17:50:00+00:00",
+    "trigger_time": "2026-11-13 17:50:00+00:00"
+  },
+  "409ad8f24c740c9b217f4f7022189fc4f5d05c715511bbbb540c52f164bad10a": {
+    "symbol": "GBPCAD",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-11-13T18:41:49.675498+00:00",
+    "final_time": "2026-11-13 17:50:00+00:00",
+    "trigger_time": "2026-11-13 17:50:00+00:00"
+  },
+  "89b42d28f629da4dbcee5d3b8b3c5315d1644b056e619d64d18e41f0ef80f671": {
+    "symbol": "AUDCAD",
+    "timeframe": "M15",
+    "direction": "SELL",
+    "sent_at": "2026-11-13T18:41:49.675498+00:00",
+    "final_time": "2026-11-13 17:30:00+00:00",
+    "trigger_time": "2026-11-13 17:30:00+00:00"
+  },
+  "b64a59dadb4355444507d68f0b9cb3f7a95579efb40a6e1bf5b01fa3808b286a": {
+    "symbol": "EURAUD",
+    "timeframe": "M15",
+    "direction": "BUY",
+    "sent_at": "2026-11-13T18:41:49.675498+00:00",
+    "final_time": "2026-11-13 17:15:00+00:00",
+    "trigger_time": "2026-11-13 17:15:00+00:00"
+  },
+  "9929d55346f368c47c11698dc348a9dbb11f140c9e96814bc676c0bcafbf1d4e": {
+    "symbol": "EURNZD",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-11-13T18:41:49.675498+00:00",
+    "final_time": "2026-11-13 16:00:00+00:00",
+    "trigger_time": "2026-11-13 16:00:00+00:00"
+  },
+  "91aa7e2b538c17e9a9ff15f91cd9a30d61c6457aa878c6e62610b8921dca503f": {
+    "symbol": "USDJPY",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-11-13T18:41:49.675498+00:00",
+    "final_time": "2026-11-13 15:55:00+00:00",
+    "trigger_time": "2026-11-13 15:55:00+00:00"
+  },
+  "730973bf6d3b4857ae5b32db56f2341d68c383a1379de532d28e987b6eb6bb64": {
+    "symbol": "USDCHF",
+    "timeframe": "M5",
+    "direction": "SELL",
+    "sent_at": "2026-11-13T18:41:49.675498+00:00",
+    "final_time": "2026-11-13 15:40:00+00:00",
+    "trigger_time": "2026-11-13 15:40:00+00:00"
+  },
+  "182191e68553b8648d79ef397b4d389f7b6acdda435441fd6b40dd21f6bca8f1": {
+    "symbol": "NZDUSD",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-11-13T18:41:49.675498+00:00",
+    "final_time": "2026-11-13 15:35:00+00:00",
+    "trigger_time": "2026-11-13 15:35:00+00:00"
+  },
+  "e8ae71a840f48fae3288a86b5fd8cfe76ff1a550505ac1923867d525e6f09b6b": {
+    "symbol": "GBPCHF",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-11-13T18:41:49.675498+00:00",
+    "final_time": "2026-11-13 14:45:00+00:00",
+    "trigger_time": "2026-11-13 14:45:00+00:00"
+  },
+  "1467e8d1251d3b38a8df620b42cf22a24dddb8788bc3278cf7013a515670781c": {
+    "symbol": "GBPNZD",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-11-13T18:41:49.675498+00:00",
+    "final_time": "2026-11-13 14:15:00+00:00",
+    "trigger_time": "2026-11-13 14:15:00+00:00"
+  },
+  "e991ec1cb5011560e9274be943f4d68e25906876e8f0943f50b85cd196525d61": {
+    "symbol": "NZDJPY",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-11-13T18:41:49.675498+00:00",
+    "final_time": "2026-11-13 13:55:00+00:00",
+    "trigger_time": "2026-11-13 13:55:00+00:00"
+  },
+  "4feaef22d8c5567bb7a290fb60b1827d2efc0b930addde058cdf19fc9b94c985": {
+    "symbol": "EURCHF",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-11-13T18:41:49.675498+00:00",
+    "final_time": "2026-11-13 13:15:00+00:00",
+    "trigger_time": "2026-11-13 13:15:00+00:00"
+  },
   "ec43ddbcd72540ada3188a56f7b4b68485ef2ff18def8833dd77ad6342944c14": {
     "symbol": "AUDCAD",
     "timeframe": "M5",
@@ -3894,109 +3998,5 @@
     "sent_at": "2026-10-29T15:57:21.292454+00:00",
     "final_time": "2026-10-29 14:15:00+00:00",
     "trigger_time": "2026-10-29 14:15:00+00:00"
-  },
-  "831a9044661f36295cfe640858df90a99ce20a7980df62e303118542e2f196e9": {
-    "symbol": "EURAUD",
-    "timeframe": "M5",
-    "direction": "SELL",
-    "sent_at": "2026-10-29T15:57:21.292454+00:00",
-    "final_time": "2026-10-29 13:40:00+00:00",
-    "trigger_time": "2026-10-29 13:40:00+00:00"
-  },
-  "d1c70bc4972ee653c5bb3b18a3703701bb25eb5ff864ec4cec00e3ff5b22e116": {
-    "symbol": "GBPNZD",
-    "timeframe": "M5",
-    "direction": "BUY",
-    "sent_at": "2026-10-29T15:57:21.292454+00:00",
-    "final_time": "2026-10-29 13:05:00+00:00",
-    "trigger_time": "2026-10-29 13:05:00+00:00"
-  },
-  "614541a569ec28a16c8667bdcc0ff2530460e19cb3be684cb12e1068c2b4f870": {
-    "symbol": "EURCAD",
-    "timeframe": "H1",
-    "direction": "SELL",
-    "sent_at": "2026-10-29T15:57:21.292454+00:00",
-    "final_time": "2026-10-29 13:00:00+00:00",
-    "trigger_time": "2026-10-29 13:00:00+00:00"
-  },
-  "af930e1f4cdae3568eb5d685529bc40525c567b1015001fd473eb0169d02b2fe": {
-    "symbol": "GBPCAD",
-    "timeframe": "H1",
-    "direction": "SELL",
-    "sent_at": "2026-10-29T15:57:21.292454+00:00",
-    "final_time": "2026-10-29 13:00:00+00:00",
-    "trigger_time": "2026-10-29 13:00:00+00:00"
-  },
-  "ee569672917e1cd0cb2d5764febde573c2610f32028522cc5105d13ce49b7cbb": {
-    "symbol": "GBPCHF",
-    "timeframe": "M5",
-    "direction": "BUY",
-    "sent_at": "2026-10-29T15:57:21.292454+00:00",
-    "final_time": "2026-10-29 12:35:00+00:00",
-    "trigger_time": "2026-10-29 12:35:00+00:00"
-  },
-  "092e3a10ca3d4bd2853ac1b34618c88882f1b8b17947421a534da9c5f00da664": {
-    "symbol": "USDJPY",
-    "timeframe": "H1",
-    "direction": "SELL",
-    "sent_at": "2026-10-29T15:57:21.292454+00:00",
-    "final_time": "2026-10-29 12:00:00+00:00",
-    "trigger_time": "2026-10-29 12:00:00+00:00"
-  },
-  "171c2092088f2852dc0e3969e35d9a6e77adc096d1ec77dcf00b4179aabeccc5": {
-    "symbol": "NZDUSD",
-    "timeframe": "M15",
-    "direction": "SELL",
-    "sent_at": "2026-10-29T15:57:21.292454+00:00",
-    "final_time": "2026-10-29 11:15:00+00:00",
-    "trigger_time": "2026-10-29 11:15:00+00:00"
-  },
-  "15061966b0efd44a8d7dc48fb9a7a48cde297a0fc04fe77e8c82b1bf74dedf94": {
-    "symbol": "GBPAUD",
-    "timeframe": "M5",
-    "direction": "BUY",
-    "sent_at": "2026-10-29T15:57:21.292454+00:00",
-    "final_time": "2026-10-29 11:00:00+00:00",
-    "trigger_time": "2026-10-29 11:00:00+00:00"
-  },
-  "944d17726948ab99b0abf24a6b55b72505ae9c6b6c8631101bcc6d534fecd984": {
-    "symbol": "AUDJPY",
-    "timeframe": "M15",
-    "direction": "SELL",
-    "sent_at": "2026-10-29T15:57:21.292454+00:00",
-    "final_time": "2026-10-29 10:45:00+00:00",
-    "trigger_time": "2026-10-29 10:45:00+00:00"
-  },
-  "83d11cbd079348ce5097341998523b66cee55a03b136712aad2336917eea0e66": {
-    "symbol": "EURUSD",
-    "timeframe": "M15",
-    "direction": "SELL",
-    "sent_at": "2026-10-29T15:57:21.292454+00:00",
-    "final_time": "2026-10-29 10:15:00+00:00",
-    "trigger_time": "2026-10-29 10:15:00+00:00"
-  },
-  "78fb1f600f26d87f2f709268c241127ee134bafd04daa2b3dca8f03e3503aa79": {
-    "symbol": "GBPUSD",
-    "timeframe": "M15",
-    "direction": "SELL",
-    "sent_at": "2026-10-29T15:57:21.292454+00:00",
-    "final_time": "2026-10-29 10:15:00+00:00",
-    "trigger_time": "2026-10-29 10:15:00+00:00"
-  },
-  "829804820ed6d725a0a6391db683cb8d83888023a1c59e6220b17a129d1e5f50": {
-    "symbol": "USDCAD",
-    "timeframe": "M15",
-    "direction": "BUY",
-    "sent_at": "2026-10-29T15:57:21.292454+00:00",
-    "final_time": "2026-10-29 10:15:00+00:00",
-    "trigger_time": "2026-10-29 10:15:00+00:00"
-  },
-  "436f87ac938c01608412049bb4ddd4b4992e6e2b044c301ea277eb657d1b4525": {
-    "symbol": "EURCHF",
-    "timeframe": "M5",
-    "direction": "SELL",
-    "sent_at": "2026-10-29T15:57:21.292454+00:00",
-    "final_time": "2026-10-29 09:55:00+00:00",
-    "trigger_time": "2026-10-29 09:55:00+00:00"
   }
 }
