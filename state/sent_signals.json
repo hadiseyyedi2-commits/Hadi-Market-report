@@ -1,4 +1,28 @@
 {
+  "604c29c99c02bd5f362c1f8b7d736b8d4aa1da24279ef8dc1489435362e1bbe8": {
+    "symbol": "USDCHF",
+    "timeframe": "M5",
+    "direction": "BUY",
+    "sent_at": "2026-11-23T01:32:55.761649+00:00",
+    "final_time": "2026-11-23 01:15:00+00:00",
+    "trigger_time": "2026-11-23 01:15:00+00:00"
+  },
+  "bede8cf10dd2f70b7a641a7f2beadf66e748ec7b92125aaae71e6b6be7e6ff10": {
+    "symbol": "NZDUSD",
+    "timeframe": "M15",
+    "direction": "SELL",
+    "sent_at": "2026-11-23T01:32:55.761649+00:00",
+    "final_time": "2026-11-23 00:00:00+00:00",
+    "trigger_time": "2026-11-23 00:00:00+00:00"
+  },
+  "f1017ca3d34fff59926d196358021794d11b5755c44685344352d9f655f3b0da": {
+    "symbol": "AUDJPY",
+    "timeframe": "M15",
+    "direction": "SELL",
+    "sent_at": "2026-11-23T01:32:55.761649+00:00",
+    "final_time": "2026-11-23 00:00:00+00:00",
+    "trigger_time": "2026-11-23 00:00:00+00:00"
+  },
   "ecd216efb1e4148f51ad219f3345291c15f68a814fa3ddd5b3c25ae370e4e16f": {
     "symbol": "GBPCHF",
     "timeframe": "M5",
@@ -3974,29 +3998,5 @@
     "sent_at": "2026-11-06T00:18:55.896774+00:00",
     "final_time": "2026-11-05 19:45:00+00:00",
     "trigger_time": "2026-11-05 19:45:00+00:00"
-  },
-  "e1afa14062ff601282a81e0a6f7b24d76ff30fcef6cff18d087a0c5b6b8c6b9b": {
-    "symbol": "NZDJPY",
-    "timeframe": "M15",
-    "direction": "SELL",
-    "sent_at": "2026-11-06T00:18:55.896774+00:00",
-    "final_time": "2026-11-05 19:45:00+00:00",
-    "trigger_time": "2026-11-05 19:45:00+00:00"
-  },
-  "f8a0ac0982a418d54bf5d2238a03f730679fecfc428ca125b02ed46fa708de75": {
-    "symbol": "EURGBP",
-    "timeframe": "M5",
-    "direction": "BUY",
-    "sent_at": "2026-11-06T00:18:55.896774+00:00",
-    "final_time": "2026-11-05 19:40:00+00:00",
-    "trigger_time": "2026-11-05 19:40:00+00:00"
-  },
-  "ef854d1e2edfdbaa3aa0561c79b3a3d421473ef2038dcf64d6a2939ebba32906": {
-    "symbol": "GBPJPY",
-    "timeframe": "M5",
-    "direction": "SELL",
-    "sent_at": "2026-11-06T00:18:55.896774+00:00",
-    "final_time": "2026-11-05 19:40:00+00:00",
-    "trigger_time": "2026-11-05 19:40:00+00:00"
   }
 }
